@@ -85,13 +85,13 @@ config BR2_TARGET_GENERIC_PASSWD_METHOD
 # skeletons, which are providers of the virtual skeleton package.
 choice
 	prompt "Init system"
-	default BR2_INIT_BUSYBOX
+	default BR2_INIT_NONE
 
-config BR2_INIT_BUSYBOX
-	bool "BusyBox"
-	select BR2_PACKAGE_BUSYBOX
-	select BR2_PACKAGE_INITSCRIPTS
-	select BR2_PACKAGE_SKELETON_INIT_SYSV if BR2_ROOTFS_SKELETON_DEFAULT
+#config BR2_INIT_BUSYBOX
+#	bool "BusyBox"
+#	select BR2_PACKAGE_BUSYBOX
+#	select BR2_PACKAGE_INITSCRIPTS
+#	select BR2_PACKAGE_SKELETON_INIT_SYSV if BR2_ROOTFS_SKELETON_DEFAULT
 
 config BR2_INIT_SYSV
 	bool "systemV"
@@ -101,12 +101,12 @@ config BR2_INIT_SYSV
 	select BR2_PACKAGE_SYSVINIT
 	select BR2_PACKAGE_SKELETON_INIT_SYSV if BR2_ROOTFS_SKELETON_DEFAULT
 
-config BR2_INIT_OPENRC
-	bool "OpenRC"
-	depends on BR2_USE_MMU
-	depends on !BR2_STATIC_LIBS
-	select BR2_PACKAGE_OPENRC
-	select BR2_PACKAGE_SKELETON_INIT_OPENRC if BR2_ROOTFS_SKELETON_DEFAULT
+#config BR2_INIT_OPENRC
+#	bool "OpenRC"
+#	depends on BR2_USE_MMU
+#	depends on !BR2_STATIC_LIBS
+#	select BR2_PACKAGE_OPENRC
+#	select BR2_PACKAGE_SKELETON_INIT_OPENRC if BR2_ROOTFS_SKELETON_DEFAULT
 
 comment "openrc needs a toolchain w/ dynamic library"
 	depends on BR2_USE_MMU

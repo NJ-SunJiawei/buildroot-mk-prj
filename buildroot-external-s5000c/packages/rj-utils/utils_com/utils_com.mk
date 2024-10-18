@@ -29,7 +29,8 @@ define $(PKG)_BUILD_CMDS
 	@echo "TARGET_MAKE_ENV=$(TARGET_MAKE_ENV), MAKE=$(MAKE)"
 	@echo "$(PKG)_SOURCE_DIR=$(@D)"
 	@echo "env CROSS=$(CROSS)"
-	$(TARGET_MAKE_ENV) $(MAKE) $(RJ_ENVS) -C $(@D)
+#	entery>>>
+#	$(TARGET_MAKE_ENV) $(MAKE) $(RJ_ENVS) -C $(@D)
 endef
 
 #define $(PKG)_INSTALL_TARGET_CMDS

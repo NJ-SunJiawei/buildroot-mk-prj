@@ -67,13 +67,9 @@ Toolchain
 
 配置额外rj安装包
 
+参考git记录，去掉所有busybox相关的。
+此外skeleton可以替换为外部工程。
 
-？？？干掉busybox
-1、buildroot-xxxx\package\busybox\Config.in
-config BR2_PACKAGE_BUSYBOX
-	bool "BusyBox"
-#	default y
-    default n
 
 构建buildroot-external-s5000c和buildroot-output
 
