@@ -13,6 +13,16 @@ DPDK_INSTALL_STAGING = YES
 DPDK_INSTALL_TARGET = YES
 
 DPDK_DEPENDENCIES = host-python-pyelftools
+DPDK_DEPENDENCIES += numactl
+
+ifeq ($(BR2_PACKAGE_LIBPCAP),y)
+DPDK_DEPENDENCIES += libpcap
+endif
+
+ifeq ($(BR2_PACKAGE_DPDK_KERNEL_MODULES),y)
+#DPDK_DEPENDENCIES += linux
+endif
+
 DPDK_CONF_OPTS += -Dexamples=ALL -Denable_kmods=true
 
 $(eval $(meson-package))

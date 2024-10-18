@@ -5,5 +5,12 @@ config BR2_PACKAGE_DPDK
 	depends on BR2_TOOLCHAIN_HAS_THREADS # DPDK requires thread support
 	select BR2_PACKAGE_PYTHON3
 	select BR2_PACKAGE_PYTHON_PYELFTOOLS # runtime
+	select BR2_PACKAGE_NUMACTL
 	help
 		DPDK is a set of libraries and drivers for fast packet processing.
+		http://www.dpdk.org/
+
+config BR2_PACKAGE_DPDK_KERNEL_MODULES
+	bool "Install kernel modules"
+	default n
+	depends on BR2_PACKAGE_DPDK
