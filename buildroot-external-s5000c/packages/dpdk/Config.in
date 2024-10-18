@@ -1,0 +1,9 @@
+#2024-10-17 create by sjw
+
+config BR2_PACKAGE_DPDK
+	bool "dpdk"
+	depends on BR2_TOOLCHAIN_HAS_THREADS # DPDK requires thread support
+	select BR2_PACKAGE_PYTHON3
+	select BR2_PACKAGE_PYTHON_PYELFTOOLS # runtime
+	help
+		DPDK is a set of libraries and drivers for fast packet processing.

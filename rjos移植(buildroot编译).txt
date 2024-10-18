@@ -1,0 +1,113 @@
+openEuler gcc=10.3.1 glibc=2.34 编译内核：5.10.0
+Linux k8s-node1 5.10.0-136.12.0.86.oe2203sp1.aarch64 #1 SMP Tue Dec 27 17:51:19 CST 2022 aarch64 aarch64 aarch64 GNU/Linux
+
+buildroot编译参考：
+https://doc.embedfire.com/lubancat/build_and_deploy/zh/latest/building_image/buildroot/buildroot.html
+
+下载openEuler x86 容器：
+容器：https://mirrors.nju.edu.cn/openeuler/openEuler-22.03-LTS-SP3/docker_img/
+
+自身安装x86编译器： 
+yum groupinstall "Development Tools" --nogpgcheck -y (基础工具)
+yum install ncurses-devel cmake wget python rsync (make menuconfig 需要)
+dnf install lzip
+yum install vim sudo 
+yum install meson ninja
+
+安装交叉编译器：gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu.tar.xz 
+glibc=2.33 编译内核：4.20.0
+交叉编译器：https://developer.arm.com/downloads/-/gnu-a
+交叉编译器(备选)：https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads
+交叉编译器（linaro新版本）：https://snapshots.linaro.org/gnu-toolchain/
+交叉编译器（linaro老版本）：https://releases.linaro.org/components/toolchain/binaries/
+tar -xJf gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu.tar.xz
+ps:修改buildroot-xxxxx\toolchain\helpers.mk 中check_gcc_version和check_kernel_headers_version函数 exit改为echo
+ps:记得给权限给交叉编译器
+
+buildroot工程下载：版本2023.02/2017.02.5(老版本废弃)
+https://github.com/buildroot/buildroot/tags?after=2023.02
+tar -zxvf buildroot-xxxx.tar.gz
+
+
+MobaXterm 进入make menuconfig 里面的输入框按Backspace按键无法删除内容的问题:
+https://blog.csdn.net/qq_37858386/article/details/136614723
+
+开始配置.config
+make defconfig
+make menuconfig
+
+Target options
+        -> Target Architecture = AArch64 (little endian)
+        -> Target Binary Format = ELF
+        -> Target Architecture Variant = cortex-A72
+        -> Floating point strategy = FP-ARMv8
+
+Toolchain
+   -> Toolchain type = External toolchain
+   -> Toolchain = Custom toolchain //选择用户的交叉编译器
+   -> Toolchain origin = Pre-installed toolchain
+   -> Toolchain path = /home/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu //这里填入我们上面获得的交叉编译器路径
+   -> Toolchain prefix = aarch64-none-linux-gnu //前缀
+   -> External toolchain gcc version = 10.x
+   -> External toolchain kernel headers series = 5.10.x
+   -> External toolchain C library = glibc/eglibc
+   -> [*] Toolchain has SSP support? (NEW) //选中
+   -> [ ] Toolchain has RPC support? (NEW) //不选中
+   -> [*] Toolchain has C++ support? //选中
+   -> [*] Enable MMU support (NEW) //选中
+   #-> Extra toolchain libraries to be copied to target = m pthread
+  
+ System configuration
+   -> System hostname = Embedfire_imx6ull //平台名字
+   -> System banner = Welcome to embedfire i.mx6ull //欢迎语
+   -> Init system = BusyBox //使用 busybox
+   -> /dev management = Dynamic using devtmpfs + mdev //使用 mdev
+   -> [*] Enable root login with password (NEW) //使能登录密码
+   -> Root password = 123456 //登录密码为 root
+
+配置额外rj安装包
+
+
+？？？干掉busybox
+1、buildroot-xxxx\package\busybox\Config.in
+config BR2_PACKAGE_BUSYBOX
+	bool "BusyBox"
+#	default y
+    default n
+
+构建buildroot-external-s5000c和buildroot-output
+
+#外部输出：make O=$PWD -C path/to/buildroot
+#外部构建目录: make BR2_EXTERNAL=/path/to/foo menuconfig
+
+make <package>-dirclean
+make <package>-rebuild
+make clean
+make distclean 删除所有
+make install-staging
+make install-target
+
+(staging会安装到host下的sysroot目录)
+STAGING_SUBDIR = $(GNU_TARGET_NAME)/sysroot
+STAGING_DIR    = $(HOST_DIR)/$(STAGING_SUBDIR)
+
+
+构建config:
+make -C /home/buildroot-2023.02 O=/home/buildroot-output BR2_EXTERNAL=../buildroot-external-s5000c menuconfig
+cp .config configs/sjw_10.3.1_defconfig
+
+下载离线包:
+make -C /home/buildroot-2023.02 O=/home/buildroot-output BR2_EXTERNAL=../buildroot-external-s5000c source
+
+编译dpdk：
+make -C /home/buildroot-2023.02 O=/home/buildroot-output BR2_EXTERNAL=../buildroot-external-s5000c dpdk
+
+skeleton-init-common skeleton-init-sysv skeleton 会安装到系统（这是啥玩意儿，是不是可以切换成openEuler）
+
+docker commit 06181f2280fb openeuler-gxx:latest 把当前的镜像保存下来
+
+
+rj编译修改点：
+utils_com中所有macros.mk中65行 log_sha1内容屏蔽
+需要安装ncurses 或者procps.mk中./configure中接入--without-ncurses
+                    procps.mk中屏蔽slatop和top拷贝

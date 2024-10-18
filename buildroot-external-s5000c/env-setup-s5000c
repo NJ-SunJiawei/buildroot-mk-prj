@@ -1,0 +1,30 @@
+export PRODUCT=bbu_mc_s5000cm
+export HOST=aarch64-none-linux-gnu
+export HOST_CROSS=aarch64-none-linux-gnu
+export cpu_name=s5000cm_5.4
+#export TOOLCHAIN_BRANCH=toolchain-aarch64-gcc9.4.0-glibc2.31-fd64
+export BIN_PATH="/home/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu"
+export ARCH=arm64
+export RUIJIE_ARCH=arm64
+export KERNEL_ARCH=arm64
+export CROSS=aarch64-none-linux-gnu
+#export DEB_ARCH=${CROSS}/*
+export INSTALL_SODIR=lib64
+export ENDIAN_FLAG="-D_LITTLE_ENDIAN"
+export SYSTEM_NAME=pj7_mc
+
+#step 2
+export PRJROOT=$(pwd)
+export RGOSM_ROOT=$(PRJROOT)/prj_
+export ROOTFS=$PRJROOT/images/rootfs_$PRODUCT
+export PRJNAME=$(echo $PRJROOT | tr [a-z] [A-Z])
+export CFLAGS=-I$(PRJROOT)/include -I$PRJROOT/images/header_in -I$PRJROOT/$RGOSM_ROOT/include $ENDIAN_FLAG
+export LDFLAGS=-L$ROOTFS/usr/gcc3($INSTALL_SODIR) -L$ROOTFS/usr/cross-gcc/lib -L$ROOTFS/t($INSTALL_SODIR) -L$ROOTFS/usr/lib -L$ROOTFS/$INSTALL_SODIR -L$ROOTFS/lib -L$ROOTFS/usr/aarch64-Linux-gnu
+if [ ! -f $PATH ]; then export PATH=$RGOSM_ROOT/bin:$PATH:$ROOTFS/usr-cross-gcc/lib:$ROOTFS/t($INSTALL_SODIR):$ROOTFS/usr/lib:$ROOTFS/lib:$ROOTFS/lib:$ROOTFS/usr/host_cross; fi
+export URL_BASE=http://192.168.101.200:8080
+PROJECTNM=$(git rev-parse --abbrev-ref HEAD | awk '/^\/' {print $2}'/' {print $1})
+if [ "$PROJECTNM" = "HEAD" ]; then PROJECTNM=$(echo $PROJECTNM | tr [a-z] [A-Z]); fi
+export REPO_PRODUCT=$PRODUCT
+export REPO_UP=$URL_BASE-bin/processsf
+export REPO_PATH=$REPO_PRODUCT/$BUILDTYPE_I
+echo -n "" > .envsetuped

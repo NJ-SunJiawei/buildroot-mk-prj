@@ -1,0 +1,7 @@
+#2024-10-17 create by sjw
+
+menu "rj packages"
+	source "$BR2_EXTERNAL_RJ_PATH/packages/dpdk/Config.in"
+	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-utils/Config.in"
+endmenu
+

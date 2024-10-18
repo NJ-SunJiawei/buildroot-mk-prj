@@ -1,0 +1,46 @@
+config BR2_PACKAGE_UTILS_COM
+	bool "utils_com"
+	default y
+	help
+		utils_com git.
+
+#2024-10-17 create by sjw
+
+config UTILS_COM_DEBUG_MODE
+	bool "utils_com debug mode"
+	depends on BR2_PACKAGE_UTILS_COM
+	default y
+	help
+		utils_com use XXX_OVERRIDE_SRCDIR.
+
+choice
+    prompt "src debug type"
+    default UTILS_COM_DEBUG_LOCAL_MODE
+	depends on UTILS_COM_DEBUG_MODE
+
+config UTILS_COM_DEBUG_LOCAL_MODE
+    bool "local debug type"
+    help
+		Src use local debug type(copy to output build).
+
+config UTILS_COM_DEBUG_OVERRIDE_MODE
+    bool "override debug type"
+    help
+		Src use override debug type(src local build).
+endchoice
+
+
+config UTILS_COM_REPO_DIRECTORY_LOCATION
+	string "repos of util_com"
+	default "http://192.168.210.6.8080/TQ_COM"
+	depends on BR2_PACKAGE_UTILS_COM
+	depends on !UTILS_COM_DEBUG_MODE
+	help
+		reps of util_com.
+
+config UTILS_COM_DEPENDENCIES_MODULES
+	string "depended on"
+	depends on BR2_PACKAGE_UTILS_COM
+	default ""
+	help
+		depended on

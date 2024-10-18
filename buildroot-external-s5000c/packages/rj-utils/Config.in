@@ -1,0 +1,7 @@
+menu "rj-utils packages"
+	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-utils/utils_com/Config.in"
+#	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-utils/utils-adpl/Config.in"
+#	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-utils/utils-adpl-api/Config.in"
+#	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-utils/utils-cstm/Config.in"
+#	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-utils/utils-frwk/Config.in"
+endmenu
