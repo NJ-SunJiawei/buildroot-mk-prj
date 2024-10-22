@@ -1,8 +1,8 @@
 #2024-10-17 create by sjw
 # ??? Use \make -e'/'export' to pass parameters
 
-#host         gxx+glibc
-#target       buildroot install depends packages
+#host-arm64   gxx+glibc
+#staging      buildroot sysroot
 #target_rj rj install
 
 PRODUCT_TYPE_CU=y
@@ -36,6 +36,7 @@ IMAGES=$(PRJROOT)/images
 BR2_SYTLE = BR2_ARCH_IS_64=$(BR2_ARCH_IS_64) BR2_aarch64=$(BR2_aarch64) BR2_x86_64=$(BR2_x86_64) BR2_ENDIAN=$(BR2_ENDIAN)
 
 RJ_ENVS = \
+	$(BR2_SYTLE) \
 	PRODUCT_TYPE_CU=$(PRODUCT_TYPE_CU) \
 	CROSS=$(CROSS) \
 	INSTALL_SODIR=$(INSTALL_SODIR) \
@@ -44,4 +45,4 @@ RJ_ENVS = \
 	CACHE=$(CACHE) \
 	IMAGES=$(IMAGES) \
 	ROOTFS_IMAGES=$(ROOTFS_IMAGES) \
-	BR2_SYTLE=$(BR2_SYTLE)
+	
