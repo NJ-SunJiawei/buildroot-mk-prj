@@ -1,6 +1,7 @@
 config BR2_PACKAGE_UTILS_COM
 	bool "utils_com"
 	default y
+	select BR2_PACKAGE_NCURSES
 	help
 		utils_com git.
 

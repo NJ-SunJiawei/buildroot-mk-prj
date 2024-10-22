@@ -22,6 +22,8 @@ endif
 $(PKG)_DEPENDENCIES = $(subst ",,$($(PKG)_DEPENDENCIES_MODULES))
 $(PKG)_CONTROL_DIR = $($(@D)/script/control)
 
+$(PKG)_DEPENDENCIES += ncurses 
+
 #@echo "TARGET_CONFIGURE_OPTS=$(TARGET_CONFIGURE_OPTS)"
 define $(PKG)_BUILD_CMDS
 	@echo "TARGET_DIR=$(TARGET_DIR), HOST_DIR=$(HOST_DIR), BASE_DIR=$(BASE_DIR)"
@@ -30,7 +32,7 @@ define $(PKG)_BUILD_CMDS
 	@echo "$(PKG)_SOURCE_DIR=$(@D)"
 	@echo "env CROSS=$(CROSS)"
 #	entery>>>
-#	$(TARGET_MAKE_ENV) $(MAKE) $(RJ_ENVS) -C $(@D)
+	$(TARGET_MAKE_ENV) $(MAKE) $(RJ_ENVS) -C $(@D)
 endef
 
 #define $(PKG)_INSTALL_TARGET_CMDS
