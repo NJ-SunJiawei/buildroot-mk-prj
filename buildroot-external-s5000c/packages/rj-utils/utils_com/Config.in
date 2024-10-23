@@ -1,17 +1,18 @@
+#2024-10-17 create by sjw
+
 config BR2_PACKAGE_UTILS_COM
 	bool "utils_com"
 	default y
 	select BR2_PACKAGE_NCURSES
 	select BR2_PACKAGE_LIBZLIB
+#	select BR2_PACKAGE_LUA
 	help
 		utils_com git.
 
-#2024-10-17 create by sjw
-
 config UTILS_COM_DEBUG_MODE
 	bool "utils_com debug mode"
-	depends on BR2_PACKAGE_UTILS_COM
 	default y
+	depends on BR2_PACKAGE_UTILS_COM
 	help
 		utils_com use XXX_OVERRIDE_SRCDIR.
 
@@ -33,16 +34,16 @@ endchoice
 
 
 config UTILS_COM_REPO_DIRECTORY_LOCATION
-	string "repos of util_com"
-	default "http://192.168.210.6.8080/TQ_COM"
+	string "repos of utils_com"
+	default "http://192.168.210.6.8080/TQ_CSTM"
 	depends on BR2_PACKAGE_UTILS_COM
 	depends on !UTILS_COM_DEBUG_MODE
 	help
-		reps of util_com.
+		reps of utils_com.
 
 config UTILS_COM_DEPENDENCIES_MODULES
-	string "depended on"
+	string "pkg depended on"
+	default "ncurses libzlib"
 	depends on BR2_PACKAGE_UTILS_COM
-	default ""
 	help
 		depended on

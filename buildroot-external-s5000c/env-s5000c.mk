@@ -30,10 +30,15 @@ IMAGES=$(PRJROOT)/images
 
 #uitls_com/third-part/zstd
 #uitls_com/third-part/file
-#EXPORT_HEADER=$()
+#uitls_com/third-part/lua
+EXPORT_HEADER=$(PRJROOT)/export_header
 
 #uitls_com/third-part/rg-openssl
-BR2_SYTLE = BR2_ARCH_IS_64=$(BR2_ARCH_IS_64) BR2_aarch64=$(BR2_aarch64) BR2_x86_64=$(BR2_x86_64) BR2_ENDIAN=$(BR2_ENDIAN)
+#uitls_com/third-part/rg-libnl
+BR2_SYTLE = BR2_ARCH_IS_64=$(BR2_ARCH_IS_64) BR2_ARCH=$(BR2_ARCH) BR2_aarch64=$(BR2_aarch64) BR2_x86_64=$(BR2_x86_64) BR2_ENDIAN=$(BR2_ENDIAN)
+
+#uitls_com/third-part/readline
+ARCH64=arm64
 
 RJ_ENVS = \
 	$(BR2_SYTLE) \
@@ -45,4 +50,5 @@ RJ_ENVS = \
 	CACHE=$(CACHE) \
 	IMAGES=$(IMAGES) \
 	ROOTFS_IMAGES=$(ROOTFS_IMAGES) \
-	
+	ARCH64=$(ARCH64) \
+	EXPORT_HEADER=$(EXPORT_HEADER) \

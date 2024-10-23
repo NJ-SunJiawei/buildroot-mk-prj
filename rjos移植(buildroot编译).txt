@@ -67,9 +67,10 @@ Toolchain
 
 配置额外rj安装包
 
-参考git记录，去掉所有busybox相关的。
-此外skeleton可以替换为外部工程。
-
+@@@@参考git记录，去掉所有busybox相关的。
+@@@@此外skeleton可以替换为外部工程。rootfs可以可以为openEuler rootfs
+	修改buildroot-2023.02\package\Config.in ，屏蔽所有和skeleton相关的
+	修改buildroot-2023.02\package\pkg-generic.mk 766行skeleton相关的
 
 构建buildroot-external-s5000c和buildroot-output
 
@@ -103,7 +104,103 @@ skeleton-init-common skeleton-init-sysv skeleton 会安装到系统（这是啥�
 docker commit 06181f2280fb openeuler-gxx:latest 把当前的镜像保存下来
 
 
-rj编译修改点：
-utils_com中所有macros.mk中65行 log_sha1内容屏蔽
-需要安装ncurses 或者procps.mk中./configure中接入--without-ncurses
-                    procps.mk中屏蔽slatop和top拷贝
+外部依赖(buildroot有)：ncurses(6.3) libzlib(1.2.13) 
+                       ???lua(5.3.6) readline(8.2/6.2) 
+外部依赖：dpdk(19.11.5) 
+
+nginx(1.12.2)
+
+rj编译修改点：（utils_com）
+配置：PRODUCT_TYPE_CU或者PRODUCT_TYPE_DU=y
+1、utils_com中所有macros.mk中65行 log_sha1内容屏蔽
+2、buildroot需要安装ncurses
+3、添加utils_com/common/generic/popt/popt.mk中85行
+'''
+LDFALGS="$(pkg_ldflags)"
+'''
+4、屏蔽utils_com/third_part/zstd/Makfile中61行和64行和EXPORT_HEADER相关
+5、屏蔽utils_com/third_part/file/Makfile中84行和87行和EXPORT_HEADER相关
+
+8、修改utils_com/third_part/rg-openssl/rg-openssl.mk中76行：
+'''
+.PHONY:all
+all:
+	$(TARGET_MAKE_ENV) $(MAKE) $(RJ_ENVS) -f openssl.mk
+'''
+
+   修改utils_com/third_part/openssl-3.1.1/openssl_3.1.1.mk中197行，CONFIG_OPENSSL_ENABLE_EMPTY=n
+   修改utils_com/third_part/openssl-3.1.1/openssl_3.1.1.mk中119添加
+'''
+ifeq {$(CROSS), aarch64-none-linux-gnu}
+	CROSS_PARAM:=linux-aarch64
+endif
+'''
+9、修改utils_com/third_part/curl/Makfile中27、85添加
+'''
+pkg_ldflags := $(LINKFLAGS) $(BUILD_LDFLAGS)
+LDFALGS="$(pkg_ldflags)"
+'''
+
+10、修改utils_com/third_part/shadow中所有macros.mk中54行 log_sha1内容屏蔽
+	Makfile的100、101、107、108、109加上-
+	修改67行 
+	${MAKE} clean ; \
+	${MAKE} $(pkg)-install install; \
+
+11、utils_com/third_part/libssh makefile修改36、37行：
+	-DZLIB_INCLUDE_DIR=$(ROOTFS)/usr/include
+	-DZLIB_LIBRARY=$(ROOTFS)/usr/lib64
+	makefile修改49、50行：
+	改为：$(top_srcdir)/$(DIR)/output/$(INSTALL_SODIR)
+
+12、utils_com/third_part/libssh2 makefile修改17行：
+	EXTRA_FLAGS = $(BUILD_CFLAGS) -I$(include_dir)
+
+13、utils_com/third_part/rg-libnl中libnl.mk 修改120行判断屏蔽#ifeq($(BR2_ARCH),"aarch64") 判断语句只要else
+
+14、utils_com/third_part/libpcap中Rule.mk 修改64行 -include $(KCONFIG)
+
+15、utils_com/third_part/readline中Rule.mk 修改64行 -include $(KCONFIG)
+	Makefile修改24行install: build
+	ARCH改为ARCH64
+	
+16、utils_com/third_part/rg_lua中Makefile大改：
+'''
+						.PHONY: all
+
+						all: build install
+
+						.PHONY: build
+
+						build: build_src
+						build_lib:
+							$(MAKE) CFLAGS="$(CFLAGS)" -C $(top_srcdir)/src/lib _PDIR="$(OUTPUT_DIR)/src/lib"
+							@echo "Compiled OK! find output in $(OUTPUT_DIR)/src/lib"
+						build_luac: build_lib
+							$(MAKE) CFLAGS="$(CFLAGS)" -C $(top_srcdir)/src/luac _PDIR="$(OUTPUT_DIR)/src/luac"
+							@echo "Compiled OK! find output in $(OUTPUT_DIR)/src/luac"
+						build_src: build_luac
+							$(MAKE) CFLAGS="$(CFLAGS)" -C $(top_srcdir)/src _PDIR="$(OUTPUT_DIR)/src"
+							@echo "Compiled OK! find output in $(OUTPUT_DIR)/src"
+
+						.PHONY: install
+
+						install: build
+							@mkdir -p $(IMAGES)/rootfs/usr/bin
+							@cp -af $(install_root)/rootfs/$(INSTALL_SODIR)/* $(IMAGES)/rootfs/$(INSTALL_SODIR)
+							@cp -af $(install_root)/rootfs/usr/bin/* $(IMAGES)/rootfs/usr/bin
+'''
+								Rule.mk 修改43行添加 -I$(IMAGES)/header
+								        修改44行添加 -L$(IMAGES)/rootfs/$(INSTALL_SODIR)
+
+17、utils_com/third_part/libnumactl中Rule.mk 修改64行 -include $(KCONFIG)
+	Makefile修改29行install: build
+
+18、rg-zip（还未测试）
+    rg-unzip
+
+18、utils_com/third_part/lnsp
+	Makefile.nginx修改install: build
+	              添加31行--with-openssl=$(IMAGES)/header/openssl \
+				  修改22、42行aarch64-linux-gnu为aarch64-none-linux-gun
+	Makefile.atomic修改install: build

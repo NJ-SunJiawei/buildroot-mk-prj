@@ -1,0 +1,47 @@
+config BR2_PACKAGE_UTILS_CSTM
+	bool "utils-cstm"
+	default y
+	select BR2_PACKAGE_DPDK
+	help
+		utils-cstm git.
+
+#2024-10-17 create by sjw
+
+config UTILS_CSTM_DEBUG_MODE
+	bool "utils-cstm debug mode"
+	depends on BR2_PACKAGE_UTILS_CSTM
+	default y
+	help
+		utils-cstm use XXX_OVERRIDE_SRCDIR.
+
+choice
+    prompt "src debug type"
+    default UTILS_CSTM_DEBUG_LOCAL_MODE
+	depends on UTILS_CSTM_DEBUG_MODE
+
+config UTILS_CSTM_DEBUG_LOCAL_MODE
+    bool "local debug type"
+    help
+		Src use local debug type(copy to output build).
+
+config UTILS_CSTM_DEBUG_OVERRIDE_MODE
+    bool "override debug type"
+    help
+		Src use override debug type(src local build).
+endchoice
+
+
+config UTILS_CSTM_REPO_DIRECTORY_LOCATION
+	string "repos of utils-cstm"
+	default "http://192.168.210.6.8080/TQ_COM"
+	depends on BR2_PACKAGE_UTILS_CSTM
+	depends on !UTILS_CSTM_DEBUG_MODE
+	help
+		reps of utils-cstm.
+
+config UTILS_CSTM_DEPENDENCIES_MODULES
+	string "depended on"
+	depends on BR2_PACKAGE_UTILS_CSTM
+	default "utils_com dpdk"
+	help
+		depended on

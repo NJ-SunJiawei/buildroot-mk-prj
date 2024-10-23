@@ -22,10 +22,8 @@ endif
 $(PKG)_DEPENDENCIES = $(subst ",,$($(PKG)_DEPENDENCIES_MODULES))
 $(PKG)_CONTROL_DIR = $($(@D)/script/control)
 
-$(PKG)_DEPENDENCIES += ncurses libzlib
-
-
 define $(PKG)_BUILD_CMDS
+	@echo "$(PKG)_DEPENDENCIES=$($(PKG)_DEPENDENCIES)"
 	@echo "TARGET_DIR=$(TARGET_DIR), HOST_DIR=$(HOST_DIR), BASE_DIR=$(BASE_DIR)"
 	@echo "RJ_ENVS=$(RJ_ENVS)"
 	@echo "TARGET_MAKE_ENV=$(TARGET_MAKE_ENV), MAKE=$(MAKE)"
@@ -33,7 +31,7 @@ define $(PKG)_BUILD_CMDS
 	@echo "$(PKG)_SOURCE_DIR=$(@D)"
 	@echo "env CROSS=$(CROSS)"
 #	entery>>>
-	$(TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D)
+#	$(TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D)
 endef
 
 #define $(PKG)_INSTALL_TARGET_CMDS
