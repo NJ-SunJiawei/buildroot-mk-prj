@@ -1,12 +1,13 @@
-#2024-10-17 create by sjw
+#2024-10-24 create by sjw
 
-## utils_com module
+## utils-cstm module
 pkg := utils-cstm
 PKG := UTILS_CSTM
 
 ifeq ($($(PKG)_DEBUG_MODE),y)
 $(PKG)_SITE_METHOD := local
-$(PKG)_SITE = $(BR2_EXTERNAL_RJ_PATH)/source/$(pkg)
+$(PKG)_SITE := $(BR2_EXTERNAL_RJ_PATH)/source/$(pkg)
+$(PKG)_SUBDIR := $(pkg)
 ifeq ($($(PKG)_DEBUG_OVERRIDE_MODE),y)
 $(PKG)_OVERRIDE_SRCDIR = $(BR2_EXTERNAL_RJ_PATH)/source/$(pkg)
 endif
@@ -27,19 +28,21 @@ define $(PKG)_BUILD_CMDS
 	@echo "TARGET_DIR=$(TARGET_DIR), HOST_DIR=$(HOST_DIR), BASE_DIR=$(BASE_DIR)"
 	@echo "RJ_ENVS=$(RJ_ENVS)"
 	@echo "TARGET_MAKE_ENV=$(TARGET_MAKE_ENV), MAKE=$(MAKE)"
-	@echo "TARGET_CONFIGURE_OPTS=$(TARGET_CONFIGURE_OPTS)"
+	@echo "EXTERNAL_TARGET_CONFIGURE_OPTS=$(EXTERNAL_TARGET_CONFIGURE_OPTS)"
 	@echo "$(PKG)_SOURCE_DIR=$(@D)"
 	@echo "env CROSS=$(CROSS)"
 #	entery>>>
-#	$(TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D)
+	@echo -e "\n\n$(PKG):make header"
+	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk header
+	@echo -e "\n\n$(PKG):make build"
+	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk pre-build
+	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk build
 endef
 
-#define $(PKG)_INSTALL_TARGET_CMDS
-#	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) DESTDIR=$(TARGET_DIR) install
-#endef
-
-#define $(PKG)_INSTALL_STAGING_CMDS
-#	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) DESTDIR=$(STAGING_DIR) install
-#endef
+define $(PKG)_BUILD_TARGET_CMDS
+#	entery>>>
+	@echo -e "\n\n$(PKG):make install"
+	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk install
+endef
 
 $(eval $(generic-package))

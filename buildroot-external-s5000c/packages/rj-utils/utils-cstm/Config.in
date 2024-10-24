@@ -1,11 +1,11 @@
+#2024-10-24 create by sjw
+
 config BR2_PACKAGE_UTILS_CSTM
 	bool "utils-cstm"
 	default y
 	select BR2_PACKAGE_DPDK
 	help
 		utils-cstm git.
-
-#2024-10-17 create by sjw
 
 config UTILS_CSTM_DEBUG_MODE
 	bool "utils-cstm debug mode"
@@ -33,7 +33,7 @@ endchoice
 
 config UTILS_CSTM_REPO_DIRECTORY_LOCATION
 	string "repos of utils-cstm"
-	default "http://192.168.210.6.8080/TQ_COM"
+	default "http://192.168.210.6.8080/TQ_CSTM"
 	depends on BR2_PACKAGE_UTILS_CSTM
 	depends on !UTILS_CSTM_DEBUG_MODE
 	help
@@ -41,7 +41,21 @@ config UTILS_CSTM_REPO_DIRECTORY_LOCATION
 
 config UTILS_CSTM_DEPENDENCIES_MODULES
 	string "depended on"
-	depends on BR2_PACKAGE_UTILS_CSTM
 	default "utils_com dpdk"
+	depends on BR2_PACKAGE_UTILS_CSTM
 	help
 		depended on
+
+config CONFIG_RG_MOM_SYSTEMD
+	bool "5g mom systemd sh"
+	default n
+	depends on BR2_PACKAGE_UTILS_CSTM
+	help
+		5g-mom-systemd-sh
+
+config RG_MOM_CLIENT_STATIC_BUFFER
+	bool "5g rg-mom static buffer"
+	default n
+	depends on BR2_PACKAGE_UTILS_CSTM
+	help
+		5g rg-mom-static-buffer
