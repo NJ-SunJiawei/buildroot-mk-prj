@@ -127,6 +127,8 @@ LDFALGS="$(pkg_ldflags)"
 all:
 	$(TARGET_MAKE_ENV) $(MAKE) $(RJ_ENVS) -f openssl.mk
 '''
+   修改rg-openssl.mk中187行：install-images: build
+   修改rg-openssl.mk中202行：install: install-images       
 
    修改utils_com/third_part/openssl-3.1.1/openssl_3.1.1.mk中197行，CONFIG_OPENSSL_ENABLE_EMPTY=n
    修改utils_com/third_part/openssl-3.1.1/openssl_3.1.1.mk中119添加
@@ -196,11 +198,16 @@ LDFALGS="$(pkg_ldflags)"
 17、utils_com/third_part/libnumactl中Rule.mk 修改64行 -include $(KCONFIG)
 	Makefile修改29行install: build
 
-18、rg-zip（还未测试）
-    rg-unzip
+18、utils_com/third_part/pcre-lib/pcre/Makfile 修改39行 install: src
 
-18、utils_com/third_part/lnsp
+19、utils_com/third_part/rg-zip/rgzip 修改30行 install： src
+	utils_com/third_part/rg-unzip/unrgzip 修改30行 install： src
+
+20、utils_com/third_part/lnsp
 	Makefile.nginx修改install: build
-	              添加31行--with-openssl=$(IMAGES)/header/openssl \
 				  修改22、42行aarch64-linux-gnu为aarch64-none-linux-gun
 	Makefile.atomic修改install: build
+	修改nginx-1.12.2/auto/lib/openssl/conf 添加target_rj的头文件和库文件搜索目录
+
+21、utils_com/third_part/lrzsz Makfile修改76行 clean $(pkg)-install install 拆开make
+                                          91行 make和make install拆开
