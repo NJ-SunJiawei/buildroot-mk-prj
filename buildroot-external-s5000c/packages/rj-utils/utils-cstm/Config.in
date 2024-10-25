@@ -3,7 +3,7 @@
 config BR2_PACKAGE_UTILS_CSTM
 	bool "utils-cstm"
 	default y
-	select BR2_PACKAGE_DPDK
+	#select BR2_PACKAGE_DPDK
 	help
 		utils-cstm git.
 
@@ -41,7 +41,7 @@ config UTILS_CSTM_REPO_DIRECTORY_LOCATION
 
 config UTILS_CSTM_DEPENDENCIES_MODULES
 	string "depended on"
-	default "utils_com dpdk"
+	default "linux utils_com" #dpdk
 	depends on BR2_PACKAGE_UTILS_CSTM
 	help
 		depended on
@@ -59,3 +59,32 @@ config RG_MOM_CLIENT_STATIC_BUFFER
 	depends on BR2_PACKAGE_UTILS_CSTM
 	help
 		5g rg-mom-static-buffer
+
+########################################
+config BR2_PACKAGE_DPDK_ARCH_CONFIG
+	string "dpdk config"
+	default "i686-native-linux-gcc" if BR2_x86_i686
+	default "x86_64-native-linux-gcc" if BR2_x86_64
+	default "arm64-armv8a-linux-gcc" if BR2_aarch64 || BR2_aarch64_be
+	depends on BR2_PACKAGE_UTILS_CSTM
+
+config DPDK_VER
+	string "dpdk version"
+	default "19.11.5"
+	depends on BR2_PACKAGE_UTILS_CSTM
+	help
+		DPDK version
+	
+config MESON_BUILD
+	bool "meson build or not"
+	default n
+	depends on BR2_PACKAGE_UTILS_CSTM
+	help
+		MESON build
+
+config DPDK_CROSS_FILE
+	string "DPDK cross file"
+	default ""
+	depends on BR2_PACKAGE_UTILS_CSTM
+	help
+		DPDK cross file

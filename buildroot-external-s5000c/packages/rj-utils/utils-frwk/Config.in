@@ -1,0 +1,62 @@
+#2024-10-24 create by sjw
+
+config BR2_PACKAGE_UTILS_FRWK
+	bool "utils-frwk"
+	default y
+	help
+		utils-frwk git.
+
+config UTILS_FRWK_DEBUG_MODE
+	bool "utils-frwk debug mode"
+	depends on BR2_PACKAGE_UTILS_FRWK
+	default y
+	help
+		utils-frwk use XXX_OVERRIDE_SRCDIR.
+
+choice
+    prompt "src debug type"
+    default UTILS_FRWK_DEBUG_LOCAL_MODE
+	depends on UTILS_FRWK_DEBUG_MODE
+
+config UTILS_FRWK_DEBUG_LOCAL_MODE
+    bool "local debug type"
+    help
+		Src use local debug type(copy to output build).
+
+config UTILS_FRWK_DEBUG_OVERRIDE_MODE
+    bool "override debug type"
+    help
+		Src use override debug type(src local build).
+endchoice
+
+
+config UTILS_FRWK_REPO_DIRECTORY_LOCATION
+	string "repos of utils-frwk"
+	default "http://192.168.210.6.8080/TQ_FRWK"
+	depends on BR2_PACKAGE_UTILS_FRWK
+	depends on !UTILS_FRWK_DEBUG_MODE
+	help
+		reps of utils-frwk.
+
+config UTILS_FRWK_DEPENDENCIES_MODULES
+	string "depended on"
+	default "linux utils_com utils-cstm utils-adpl-api utils-adpl"
+	depends on BR2_PACKAGE_UTILS_FRWK
+	help
+		depended on
+
+config CONFIG_MNG_CLI_CMDXML_DIR
+	string "XML DIR"
+	default "/etc/cli/cmdxml"
+	depends on BR2_PACKAGE_UTILS_FRWK
+	help
+		dir of commands XML file
+
+config CONFIG_CLI_DEP_MOM
+	bool "will cli depend on MOM"
+	default y
+	depends on BR2_PACKAGE_UTILS_FRWK
+	help
+		you can't register cli client if doesn't have MOM
+
+	

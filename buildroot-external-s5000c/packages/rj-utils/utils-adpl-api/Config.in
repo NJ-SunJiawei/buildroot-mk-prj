@@ -1,0 +1,46 @@
+#2024-10-24 create by sjw
+
+config BR2_PACKAGE_UTILS_ADPL_API
+	bool "utils-adpl-api"
+	default y
+	help
+		utils-adpl-api git.
+
+config UTILS_ADPL_API_DEBUG_MODE
+	bool "utils-adpl-api debug mode"
+	depends on BR2_PACKAGE_UTILS_ADPL_API
+	default y
+	help
+		utils-adpl-api use XXX_OVERRIDE_SRCDIR.
+
+choice
+    prompt "src debug type"
+    default UTILS_ADPL_API_DEBUG_LOCAL_MODE
+	depends on UTILS_ADPL_API_DEBUG_MODE
+
+config UTILS_ADPL_API_DEBUG_LOCAL_MODE
+    bool "local debug type"
+    help
+		Src use local debug type(copy to output build).
+
+config UTILS_ADPL_API_DEBUG_OVERRIDE_MODE
+    bool "override debug type"
+    help
+		Src use override debug type(src local build).
+endchoice
+
+
+config UTILS_ADPL_API_REPO_DIRECTORY_LOCATION
+	string "repos of utils-adpl-api"
+	default "http://192.168.210.6.8080/TQ_ADPL"
+	depends on BR2_PACKAGE_UTILS_ADPL_API
+	depends on !UTILS_ADPL_API_DEBUG_MODE
+	help
+		reps of utils-adpl-api.
+
+config UTILS_ADPL_API_DEPENDENCIES_MODULES
+	string "depended on"
+	default "utils_com utils-cstm"
+	depends on BR2_PACKAGE_UTILS_ADPL_API
+	help
+		depended on

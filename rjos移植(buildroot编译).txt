@@ -77,6 +77,8 @@ Toolchain
 #外部输出：make O=$PWD -C path/to/buildroot
 #外部构建目录: make BR2_EXTERNAL=/path/to/foo menuconfig
 
+******BR2_JLEVEL=1 使用单线程
+
 make <package>-dirclean
 make <package>-rebuild
 make clean
@@ -95,6 +97,10 @@ cp .config configs/sjw_10.3.1_defconfig
 
 下载离线包:
 make -C /home/buildroot-2023.02 O=/home/buildroot-output BR2_EXTERNAL=../buildroot-external-s5000c source
+
+编译内核：（menuconfig需要选中openssl、libelf、pahole）
+make -C /home/buildroot-2023.02 O=/home/buildroot-output BR2_EXTERNAL=../buildroot-external-s5000c linux
+
 
 编译dpdk：
 make -C /home/buildroot-2023.02 O=/home/buildroot-output BR2_EXTERNAL=../buildroot-external-s5000c dpdk
@@ -211,3 +217,11 @@ LDFALGS="$(pkg_ldflags)"
 
 21、utils_com/third_part/lrzsz Makfile修改76行 clean $(pkg)-install install 拆开make
                                           91行 make和make install拆开
+										  
+rj编译修改点：（utils-cstm）
+1、添加autoconf.h头文件，我从rj包移植过来了
+1、libham/ham_vsd.c 第一行添加
+#define _GNU_SOURCE
+#include <sched.h>
+2、dpdk需要依托内核
+   指定内核源码路径（内核源码需要编译过，内核源码编译依托buildroot）
