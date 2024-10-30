@@ -1,0 +1,56 @@
+#2024-10-24 create by sjw
+
+config BR2_PACKAGE_OM
+	bool "om"
+	default y
+	help
+		om git.
+
+config OM_DEBUG_MODE
+	bool "om debug mode"
+	depends on BR2_PACKAGE_OM
+	default y
+	help
+		om use XXX_OVERRIDE_SRCDIR.
+
+choice
+    prompt "src debug type"
+    default OM_DEBUG_LOCAL_MODE
+	depends on OM_DEBUG_MODE
+
+config OM_DEBUG_LOCAL_MODE
+    bool "local debug type"
+    help
+		Src use local debug type(copy to output build).
+
+config OM_DEBUG_OVERRIDE_MODE
+    bool "override debug type"
+    help
+		Src use override debug type(src local build).
+endchoice
+
+
+config OM_REPO_DIRECTORY_LOCATION
+	string "repos of om"
+	default "http://192.168.210.6.8080/TQ_PI"
+	depends on BR2_PACKAGE_OM
+	depends on !OM_DEBUG_MODE
+	help
+		reps of om.
+
+config OM_DEPENDENCIES_MODULES
+	string "depended on"
+	default "utils-frwk"
+	depends on BR2_PACKAGE_OM
+	help
+		depended on
+##################################
+if BR2_PACKAGE_OM
+config CONFIG_BS_LOGGING_BBU
+	int "BBU"
+	default 0
+
+config CONFIG_NOT_BS_LOGGING_BBU
+	int "not BBU bs_logging"
+	default 0
+endif

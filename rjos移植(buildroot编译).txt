@@ -111,7 +111,7 @@ skeleton-init-common skeleton-init-sysv skeleton 会安装到系统（这是啥�
 docker commit 06181f2280fb openeuler-gxx:latest 把当前的镜像保存下来
 
 
-外部依赖(buildroot有)：ncurses(6.3) libzlib(1.2.13) libxml(2.10.3)   json-c(0.16)
+外部依赖(buildroot有)：ncurses/ncurcesw(6.3)  libzlib(1.2.13) libxml(2.10.3)   json-c(0.16)
                    
 ??? 外部依赖：dpdk(19.11.5) nginx(1.12.2) lua(5.3.6) readline(8.2/6.2)
 
@@ -257,7 +257,15 @@ rj编译修改点：（utils-frwk）
 5、utils-frwk/gtpuPaketRelay/Makefile 24行改为：$(ROOTFS_IMAGES)/$(INSTALL_SODIR) 
                                       30行增加：GNB_EGTPU_PR_DPDK=1
 6、utils-frwk/gtpuPaketRelay/.../pr_data_trans/inc pr_dpdk_dbg.h 24行加 extern
+                                                   pr_dpdk_dbg.c 5行加 int pr_dpdk_logtype;
                                                    pr_dpdk_if.h  290、401行加 extern
 												   pr_dpdk_ipv4.c 273行加 extern
 												   fwd_nat.h 22行加extern
+												   fwd_nat.c 8行加 fwd_nat_tbl_t nat_local_tbl;
 												   nf_maint_nat.h 22行加 extern
+												   nf_maint_nat.c 13行加 nf_maint_nat_tbl_t g_nat_nf_maint_tbl;
+7、utils-frwk/rg_at/.../rg_at_process/ Makefile 123行加 $(LDFLAGS)
+8、utils-frwk/cli/rgcli-user/src Makefile 175行加-L$(BASE_DIR)/build/utils-frwk/images/rootfs/usr/lib64	 -L$(BASE_DIR)/build/utils-frwk/images/rootfs/usr/lib
+9、选择宽字符支持：在 ncurses 选项下，你应该能看到一个子选项来启用宽字符支持（通常称为 Wide character support (ncursesw)）  
+    utils-frwk/cli/rgcli-user/pager/more.c 77、79行ncursesw去掉
+10、utils-frwk/psh_proxy/app/Makefile 188行添加$(LDFLAGS)
