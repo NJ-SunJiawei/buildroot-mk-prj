@@ -36,6 +36,7 @@ NCURSES_CONF_OPTS = \
 	--enable-pc-files \
 	--disable-stripping \
 	--with-pkg-config-libdir="/usr/lib/pkgconfig" \
+	--with-ticlib=tinfo \
 	$(if $(BR2_PACKAGE_NCURSES_TARGET_PROGS),,--without-progs) \
 	--without-manpages
 
