@@ -65,6 +65,7 @@ Toolchain
    -> [*] Enable root login with password (NEW) //使能登录密码
    -> Root password = 123456 //登录密码为 root
 
+配置linux安装，使用额外defconfig，配置版本5.10.1
 配置额外rj安装包
 
 @@@@参考git记录，去掉所有busybox相关的。
@@ -110,11 +111,9 @@ skeleton-init-common skeleton-init-sysv skeleton 会安装到系统（这是啥�
 docker commit 06181f2280fb openeuler-gxx:latest 把当前的镜像保存下来
 
 
-外部依赖(buildroot有)：ncurses(6.3) libzlib(1.2.13) 
-                       ???lua(5.3.6) readline(8.2/6.2) 
-外部依赖：dpdk(19.11.5) 
-
-nginx(1.12.2)
+外部依赖(buildroot有)：ncurses(6.3) libzlib(1.2.13) libxml(2.10.3)   json-c(0.16)
+                   
+??? 外部依赖：dpdk(19.11.5) nginx(1.12.2) lua(5.3.6) readline(8.2/6.2)
 
 rj编译修改点：（utils_com）
 配置：PRODUCT_TYPE_CU或者PRODUCT_TYPE_DU=y
@@ -220,8 +219,45 @@ LDFALGS="$(pkg_ldflags)"
 										  
 rj编译修改点：（utils-cstm）
 1、添加autoconf.h头文件，我从rj包移植过来了
-1、libham/ham_vsd.c 第一行添加
+1、libham/ham_vsd.c 第一行添加 (gcc打开D_GNU_SOURCE扩展可以不用修改)
 #define _GNU_SOURCE
 #include <sched.h>
 2、dpdk需要依托内核
-   指定内核源码路径（内核源码需要编译过，内核源码编译依托buildroot）
+   指定内核源码路径（内核源码需要编译过,需要打开CONFIG_UIO=y，内核源码编译依托buildroot）
+   不需要修改锐捷好像适配了（原始版本dpdk19.11.5 kni驱动使用kernel5.10.1编译报错，估计不兼容，可以make CONFIG_RTE_KNI_KMOD=n 禁止kni编译，或者换成21.11.3）
+3、netconf/libnetconf2/src/Makefile 修改85、86行：
+                                    MY_LIB_PATH = $(ROOT_IMAGES)/$(INSTALL_SOIDR)
+									MY_HEADER = $(IMAGES)/header
+									修改121行#屏蔽
+rj编译修改点：（utils-adpl-api）
+1、Rule.mk 51行修改 LINKFLAGS+=$(LDFLAG) -L/$(install_sodir) -L/$(install_adir)
+           44行BUILD_CFLAGS增加$(CFLAGS)
+2、libaaa/Makefile 40行添加 $(PRJROOT)/images/rootfs/usr/lib64
+3、libhdf/hdf_lib_log.c: <oam_lib/erlib.h>   从锐捷工程拷贝oam_lib/erlib.h(好像就是liber/erlib.h)到include/oam_lib目录
+    hdf_lib_node.c  27行extern
+	inc/hdf_lib_proc.h 48行extern
+4、librg_kvdb/Makefile 148行增加-L$(LDFLAGS)
+5、libalarm/Makefile 33行增加-I$(ROOTFS)/usr/include/libxml2
+6、libne_mgr/Makefile 33行增加-I$(ROOTFS)/usr/include/libxml2
+6、libccm/Makfile 104行增加 -L$(LDFLAGS)
+    libccm/ccm_demo/Makfile 167行增加 -L$(LDFLAGS) 101行增加ADD_LIB库，把ccm的依赖都带上
+8、libdns_client   编译器打开D_GNU_SOURCE扩展
+9、libidl_visual   95、98行增加-L$(LDFLAGS)
+ 
+rj编译修改点：（utils-adpl）
+1、 utils-adpl/gnb_guard/5G_IPR/gNB_SW/gNB_CU/cu_cp/commom/utils/inc/gnb_common_utils.h 306行加extern
+    utils-adpl/gnb_guard/5G_IPR/gNB_SW/gNB_CU/cu_cp/commom/utils/inc/rrc_defines.h 32行加extern
+
+rj编译修改点：（utils-frwk）
+1、utils-frwk/mom/rg_mom_server/deps/Makefile 37\51\52行ARCH改为ARCH64
+2、utils-frwk/mom/rg_mom_client/c/rg_mom_ab_debug.h 7行增加typedef
+3、utils-frwk/mom/rg_mom_deamon Makefile 14行增加-I$(ROOTFS)/usr/include/libxml2
+   utils-frwk/cli/cli-lib Makefile 增加-L$(LDFLAGS)
+4、创建rg_tipc_types.h文件定义在（从原工程copy ，定义在5g-rgos-platform/public/include  tipc、glibc_fixed、rg_sys）
+5、utils-frwk/gtpuPaketRelay/Makefile 24行改为：$(ROOTFS_IMAGES)/$(INSTALL_SODIR) 
+                                      30行增加：GNB_EGTPU_PR_DPDK=1
+6、utils-frwk/gtpuPaketRelay/.../pr_data_trans/inc pr_dpdk_dbg.h 24行加 extern
+                                                   pr_dpdk_if.h  290、401行加 extern
+												   pr_dpdk_ipv4.c 273行加 extern
+												   fwd_nat.h 22行加extern
+												   nf_maint_nat.h 22行加 extern

@@ -40,7 +40,7 @@ config UTILS_FRWK_REPO_DIRECTORY_LOCATION
 
 config UTILS_FRWK_DEPENDENCIES_MODULES
 	string "depended on"
-	default "linux utils_com utils-cstm utils-adpl-api utils-adpl"
+	default "json-c utils_com utils-cstm utils-adpl-api utils-adpl"
 	depends on BR2_PACKAGE_UTILS_FRWK
 	help
 		depended on

@@ -40,7 +40,7 @@ config UTILS_ADPL_API_REPO_DIRECTORY_LOCATION
 
 config UTILS_ADPL_API_DEPENDENCIES_MODULES
 	string "depended on"
-	default "utils_com utils-cstm"
+	default "libxml2 utils_com utils-cstm"
 	depends on BR2_PACKAGE_UTILS_ADPL_API
 	help
 		depended on
