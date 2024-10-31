@@ -101,8 +101,8 @@ make -C /home/buildroot-2023.02 O=/home/buildroot-output BR2_EXTERNAL=../buildro
 
 编译内核：（menuconfig需要选中openssl、libelf、pahole）
 make -C /home/buildroot-2023.02 O=/home/buildroot-output BR2_EXTERNAL=../buildroot-external-s5000c linux
-
-
+make -C /home/buildroot-2023.02 O=/home/buildroot-output BR2_EXTERNAL=../buildroot-external-s5000c linux-clean
+make -C /home/buildroot-2023.02 O=/home/buildroot-output BR2_EXTERNAL=../buildroot-external-s5000c linux-rebuild
 编译dpdk：
 make -C /home/buildroot-2023.02 O=/home/buildroot-output BR2_EXTERNAL=../buildroot-external-s5000c dpdk
 
@@ -268,4 +268,11 @@ rj编译修改点：（utils-frwk）
 8、utils-frwk/cli/rgcli-user/src Makefile 175行加-L$(BASE_DIR)/build/utils-frwk/images/rootfs/usr/lib64	 -L$(BASE_DIR)/build/utils-frwk/images/rootfs/usr/lib
 9、选择宽字符支持：在 ncurses 选项下，你应该能看到一个子选项来启用宽字符支持（通常称为 Wide character support (ncursesw)）  
     utils-frwk/cli/rgcli-user/pager/more.c 77、79行ncursesw去掉
+
+---------------------------------------------------------------------
 10、utils-frwk/psh_proxy/app/Makefile 188行添加$(LDFLAGS)
+	内核/kernel/signal.c需要EXPORT_SYMBOL(do_send_sig_info);
+	内核/kernel/irq/irqdesc.c EXPORT_SYMBOL(kstat_irqs_cpu);
+
+11、utils-frwk/rg_proc_ham/Makefile 190行添加$(LDFLAGS)
+                          ham_demo/Makefile 125行添加$(LDFLAGS)

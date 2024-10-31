@@ -57,7 +57,7 @@ BR2_SYTLE = BR2_ARCH_IS_64=$(BR2_ARCH_IS_64) BR2_ARCH=$(BR2_ARCH) BR2_aarch64=$(
 			
 
 #uitls-cstm/dpdk
-KBUILD_OUTPUT=$(BASE_DIR)/build/linux-5.10.1
+KBUILD_OUTPUT=$(BASE_DIR)/build/linux-5.10.1-openeuler
 #TARGET_CROSS
 CROSS_COMPILE_DPDK=$(CROSS)-
 
