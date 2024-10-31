@@ -32,7 +32,7 @@ define $(PKG)_BUILD_CMDS
 	@echo "$(PKG)_SOURCE_DIR=$(@D)"
 	@echo "env CROSS=$(CROSS)"
 #	entery>>>
-#	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D)
+	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D)
 endef
 
 #define $(PKG)_INSTALL_TARGET_CMDS

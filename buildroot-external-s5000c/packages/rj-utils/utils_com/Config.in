@@ -4,7 +4,7 @@ config BR2_PACKAGE_UTILS_COM
 	bool "utils_com"
 	default y
 	select BR2_PACKAGE_NCURSES
-	select BR2_PACKAGE_LIBZLIB
+	select BR2_PACKAGE_ZLIB
 #	select BR2_PACKAGE_LUA
 	help
 		utils_com git.
@@ -43,7 +43,7 @@ config UTILS_COM_REPO_DIRECTORY_LOCATION
 
 config UTILS_COM_DEPENDENCIES_MODULES
 	string "pkg depended on"
-	default "ncurses libzlib"
+	default "ncurses zlib"
 	depends on BR2_PACKAGE_UTILS_COM
 	help
 		depended on

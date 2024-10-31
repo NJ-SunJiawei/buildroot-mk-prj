@@ -1,0 +1,1 @@
+rpm2cpio ./kernel-headers-5.10.0-60.18.0.50.oe2203.aarch64.rpm | cpio -idm

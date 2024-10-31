@@ -11,7 +11,7 @@ https://doc.embedfire.com/lubancat/build_and_deploy/zh/latest/building_image/bui
 yum groupinstall "Development Tools" --nogpgcheck -y (基础工具)
 yum install ncurses-devel cmake wget python rsync (make menuconfig 需要)
 dnf install lzip
-yum install vim sudo 
+yum install vim sudo  rpm-build cpio
 yum install meson ninja
 
 安装交叉编译器：gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu.tar.xz 

@@ -41,7 +41,7 @@ config UTILS_CSTM_REPO_DIRECTORY_LOCATION
 
 config UTILS_CSTM_DEPENDENCIES_MODULES
 	string "depended on"
-	default "linux utils_com" #dpdk
+	default "linux utils_com" #dpdk 
 	depends on BR2_PACKAGE_UTILS_CSTM
 	help
 		depended on
