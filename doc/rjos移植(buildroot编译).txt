@@ -1,6 +1,8 @@
 openEuler gcc=10.3.1 glibc=2.34 编译内核：5.10.0
 Linux k8s-node1 5.10.0-136.12.0.86.oe2203sp1.aarch64 #1 SMP Tue Dec 27 17:51:19 CST 2022 aarch64 aarch64 aarch64 GNU/Linux
 
+rj的部分功能修改内核了，欧拉服务器上是不是要升级内核
+
 buildroot编译参考：
 https://doc.embedfire.com/lubancat/build_and_deploy/zh/latest/building_image/buildroot/buildroot.html
 
@@ -123,8 +125,8 @@ rj编译修改点：（utils_com）
 '''
 LDFALGS="$(pkg_ldflags)"
 '''
-4、屏蔽utils_com/third_part/zstd/Makfile中61行和64行和EXPORT_HEADER相关
-5、屏蔽utils_com/third_part/file/Makfile中84行和87行和EXPORT_HEADER相关
+4、屏蔽utils_com/third_part/zstd/Makfile中61行和64行和EXPORT_HEADER相关（此条作废）
+5、屏蔽utils_com/third_part/file/Makfile中84行和87行和EXPORT_HEADER相关（此条作废）
 
 8、修改utils_com/third_part/rg-openssl/rg-openssl.mk中76行：
 '''
@@ -137,6 +139,7 @@ all:
 
    修改utils_com/third_part/openssl-3.1.1/openssl_3.1.1.mk中197行，CONFIG_OPENSSL_ENABLE_EMPTY=n
    修改utils_com/third_part/openssl-3.1.1/openssl_3.1.1.mk中119添加
+   修改utils_com/third_part/openssl-3.1.1/openssl_3.1.1.mk中237:@cd ${OPENSSL_SRC_DIR} && make generate CROSS_COMPILE= && ${MAKE} CROSS_COMPILE=
 '''
 ifeq {$(CROSS), aarch64-none-linux-gnu}
 	CROSS_PARAM:=linux-aarch64
@@ -249,6 +252,7 @@ rj编译修改点：（utils-adpl）
     utils-adpl/gnb_guard/5G_IPR/gNB_SW/gNB_CU/cu_cp/commom/utils/inc/rrc_defines.h 32行加extern
 
 rj编译修改点：（utils-frwk）
+RG_MOM_CLIENT_STATIC_BUFFER 要配置y
 1、utils-frwk/mom/rg_mom_server/deps/Makefile 37\51\52行ARCH改为ARCH64
 2、utils-frwk/mom/rg_mom_client/c/rg_mom_ab_debug.h 7行增加typedef
 3、utils-frwk/mom/rg_mom_deamon Makefile 14行增加-I$(ROOTFS)/usr/include/libxml2
@@ -276,3 +280,28 @@ rj编译修改点：（utils-frwk）
 
 11、utils-frwk/rg_proc_ham/Makefile 190行添加$(LDFLAGS)
                           ham_demo/Makefile 125行添加$(LDFLAGS)
+
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
+buildroot_defconfig
+env-s5000c.mk
+内核替换
+
+---------------------
+utils_com openssl_3.1.1/../openssl_3.1.1.mk  
+           237: 	@cd ${OPENSSL_SRC_DIR} && make generate CROSS_COMPILE= && ${MAKE} CROSS_COMPILE=
+		   
+放开utils_com/third_part/zstd/Makfile中61行和64行和EXPORT_HEADER相关
+放开utils_com/third_part/file/Makfile中84行和87行和EXPORT_HEADER相关
+
+utils_com/third_part/curl/Makfile：85行加 -lzstd
+utils-adpl-api/rg_protobuf_rt/Makfile 7行改为 cd ./src/ && cmake ./  && $(MAKE)
+utils-adpl-api/rg_protobuf_rt/GenIDL.sh 修改：cnmpt
+utils-frwk/cwmp/cwmp-usr/src/makfile 65行加 -lzstd
+utils-frwk/oam_core/oam_core_src/frame/src/oam_frame_create_open_station_file.c    149行改为 open(path, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)
+utils-frwk/oam_core/oam_core_src/frame/src/oam_frame_proto_ready.c   10行加extern
+utils-frwk/oam_core/Makfile   174行增加$(LDFLAGS)
+utils-frwk/oam_core/oam_core_adaptr/Makfile   155行增加$(LDFLAGS)
+utils-frwk/oam_core/oam_core_demo/Makfile   6行增加$(CFLAGS)
+utils-frwk/nginx-usr/app/Makefile 135行增加$(LDFLAGS)

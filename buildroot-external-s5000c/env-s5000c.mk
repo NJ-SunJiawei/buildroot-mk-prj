@@ -1,5 +1,5 @@
 #2024-10-17 create by sjw
-# ??? Use \make -e'/'export' to pass parameters
+# ??? Use 'make -e' / 'export' to pass parameters
 
 #host-arm64   gxx+glibc
 #staging      buildroot sysroot
@@ -97,7 +97,7 @@ EXTERNAL_TARGET_CONFIGURE_OPTS = \
 	$(TARGET_MAKE_ENV) \
 	AR="$(TARGET_AR)" \
 	AS="$(TARGET_AS)" \
-	LD="$(TARGET_LD) -r" \
+	LD="$(TARGET_LD)" \
 	NM="$(TARGET_NM)" \
 	CC="$(TARGET_CC)" \
 	GCC="$(TARGET_CC)" \

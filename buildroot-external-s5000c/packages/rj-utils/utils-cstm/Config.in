@@ -55,7 +55,7 @@ config CONFIG_RG_MOM_SYSTEMD
 
 config RG_MOM_CLIENT_STATIC_BUFFER
 	bool "5g rg-mom static buffer"
-	default n
+	default y
 	depends on BR2_PACKAGE_UTILS_CSTM
 	help
 		5g rg-mom-static-buffer
