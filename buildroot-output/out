@@ -1,2 +1,0 @@
-cp buildroot_defconfig .config
-make -C /home/buildroot-2023.02 O=/home/buildroot-output BR2_EXTERNAL=../buildroot-external-s5000c menuconfig

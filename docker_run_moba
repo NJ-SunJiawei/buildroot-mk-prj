@@ -1,0 +1,16 @@
+#!/bin/sh
+
+name=$1
+echo ">>>>>>>user name=$1"
+
+cp /home/$name/.Xauthority /root/
+#--rm 
+docker run --name make_pj_$name \
+		--network host \
+		-it -e DISPLAY=$DISPLAY \
+		-v /tmp/.X11-unix:/tmp/.X11-unix  \
+		-v /root/.Xauthority:/root/.Xauthority \
+		-e XAUTHORITY=/root/.Xauthority \
+		openeuler-22.03-lts-sp3:gxx \
+		/bin/bash
+

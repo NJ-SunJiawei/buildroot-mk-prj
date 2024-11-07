@@ -1,0 +1,8 @@
+#
+# Automatically generated file; DO NOT EDIT.
+#
+
+config BR2_EXTERNAL_RJ_PATH
+	string
+	default "/home/buildroot-external-s5000c"
+

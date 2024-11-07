@@ -1,0 +1,56 @@
+#2024-10-24 create by sjw
+
+config BR2_PACKAGE_CU
+	bool "CU"
+	default y
+	help
+		CU git.
+
+config CU_DEBUG_MODE
+	bool "CU debug mode"
+	depends on BR2_PACKAGE_CU
+	default y
+	help
+		CU use XXX_OVERRIDE_SRCDIR.
+
+choice
+    prompt "src debug type"
+    default CU_DEBUG_LOCAL_MODE
+	depends on CU_DEBUG_MODE
+
+config CU_DEBUG_LOCAL_MODE
+    bool "local debug type"
+    help
+		Src use local debug type(copy to output build).
+
+config CU_DEBUG_OVERRIDE_MODE
+    bool "override debug type"
+    help
+		Src use override debug type(src local build).
+endchoice
+
+
+config CU_REPO_DIRECTORY_LOCATION
+	string "repos of CU"
+	default "http://192.168.210.6.8080/TQ_CU"
+	depends on BR2_PACKAGE_CU
+	depends on !CU_DEBUG_MODE
+	help
+		reps of CU.
+
+config CU_DEPENDENCIES_MODULES
+	string "depended on"
+	default "utils_com utils-cstm utils-adpl-api utils-adpl utils-frwk om"
+	depends on BR2_PACKAGE_CU
+	help
+		depended on
+##################################
+config CU_MAX_CELL_SUPPORT
+	int "CU_MAX_CELL_SUPPORT"
+	default 12
+	depends on BR2_PACKAGE_CU
+
+config CU_MAX_UE_SUPPORT
+	int "CU_MAX_UE_SUPPORT"
+	default 7200
+	depends on BR2_PACKAGE_CU

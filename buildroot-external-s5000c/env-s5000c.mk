@@ -1,5 +1,5 @@
 #2024-10-17 create by sjw
-# ??? Use 'make -e' / 'export' to pass parameters
+# ??? Use \make -e'/'export' to pass parameters
 
 #host-arm64   gxx+glibc
 #staging      buildroot sysroot
@@ -54,6 +54,8 @@ BR2_SYTLE = BR2_ARCH_IS_64=$(BR2_ARCH_IS_64) BR2_ARCH=$(BR2_ARCH) BR2_aarch64=$(
 			CONFIG_CLI_DEP_MOM=$(CONFIG_CLI_DEP_MOM) \
 			CONFIG_BS_LOGGING_BBU=$(CONFIG_BS_LOGGING_BBU) \
 			CONFIG_NOT_BS_LOGGING_BBU=$(CONFIG_NOT_BS_LOGGING_BBU) \
+			GNB_CU_MAX_CELL_SUPPORT=$(GNB_CU_MAX_CELL_SUPPORT) \
+			GNB_CU_MAX_UE_SUPPORT=$(GNB_CU_MAX_UE_SUPPORT) \
 			
 
 #uitls-cstm/dpdk
@@ -82,6 +84,7 @@ RJ_ENVS = \
 	ROOTFS=$(STAGING_DIR) \
 	CACHE=$(CACHE) \
 	IMAGES=$(IMAGES) \
+	ROOT=$(ROOTFS_IMAGES) \
 	ROOTFS_IMAGES=$(ROOTFS_IMAGES) \
 	ARCH=$(ARCH64) \
 	ARCH64=$(ARCH64) \
@@ -133,3 +136,4 @@ EXTERNAL_TARGET_CONFIGURE_OPTS = \
 	PKG_CONFIG="$(PKG_CONFIG_HOST_BINARY)" \
 	STAGING_DIR="$(STAGING_DIR)" \
 	INTLTOOL_PERL=$(PERL)
+

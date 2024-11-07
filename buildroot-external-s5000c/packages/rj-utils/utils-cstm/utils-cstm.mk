@@ -9,7 +9,7 @@ $(PKG)_SITE_METHOD := local
 $(PKG)_SITE := $(BR2_EXTERNAL_RJ_PATH)/source/$(pkg)
 $(PKG)_SUBDIR := $(pkg)
 ifeq ($($(PKG)_DEBUG_OVERRIDE_MODE),y)
-$(PKG)_OVERRIDE_SRCDIR = $(BR2_EXTERNAL_RJ_PATH)/source/$(pkg)
+$(PKG)_OVERRIDE_SRCDIR := $(BR2_EXTERNAL_RJ_PATH)/source/$(pkg)
 endif
 else
 #$(PKG)_SOURCE = $(pkg)
@@ -37,7 +37,6 @@ define $(PKG)_BUILD_CMDS
 	@echo -e "\n\n$(PKG):make build"
 	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk pre-build
 	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk build
-	@echo -e "\n\n$(PKG):make install"
 	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk install
 endef
 

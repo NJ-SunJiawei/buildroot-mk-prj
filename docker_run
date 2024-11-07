@@ -1,0 +1,19 @@
+#!/bin/sh
+
+name=$1
+echo ">>>>>>>name=$1"
+
+rm -rf /tmp/.docker.xauth_$name
+touch /tmp/.docker.xauth_$name
+chmod 600 /tmp/.docker.xauth_$name
+chown root:root /tmp/.docker.xauth_$name
+xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f /tmp/.docker.xauth_$name nmerge -
+
+
+#--rm --memory="2g" --memory-swap="2g"
+docker run --name make_pj_$name -it \
+	-e DISPLAY=$DISPLAY \
+	-v /tmp/.X11-unix:/tmp/.X11-unix  \
+	-v /tmp/.docker.xauth_$name:/tmp/.docker.xauth_$name \
+	-e XAUTHORITY=/tmp/.docker.xauth_$name \
+	openeuler-22.03-lts-sp3:gxx /bin/bash

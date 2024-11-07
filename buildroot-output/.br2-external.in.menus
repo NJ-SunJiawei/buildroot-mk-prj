@@ -1,0 +1,10 @@
+#
+# Automatically generated file; DO NOT EDIT.
+#
+
+menu "External options"
+
+comment "rj-project directory (in /home/buildroot-external-s5000c)"
+source "/home/buildroot-external-s5000c/Config.in"
+
+endmenu

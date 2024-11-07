@@ -40,17 +40,17 @@ config OM_REPO_DIRECTORY_LOCATION
 
 config OM_DEPENDENCIES_MODULES
 	string "depended on"
-	default "utils-frwk"
+	default "utils_com utils-cstm utils-adpl-api utils-adpl utils-frwk"
 	depends on BR2_PACKAGE_OM
 	help
 		depended on
 ##################################
-if BR2_PACKAGE_OM
 config CONFIG_BS_LOGGING_BBU
 	int "BBU"
-	default 0
+	default 1
+	depends on BR2_PACKAGE_OM
 
 config CONFIG_NOT_BS_LOGGING_BBU
 	int "not BBU bs_logging"
 	default 0
-endif
+	depends on BR2_PACKAGE_OM

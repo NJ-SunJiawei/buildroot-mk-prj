@@ -1,15 +1,15 @@
-#2024-10-24 create by sjw
+#2024-11-4 create by sjw
 
-## utils-adpl-api module
-pkg := utils-adpl-api
-PKG := UTILS_ADPL_API
+## gnb_cu module
+pkg := cu
+PKG := CU
 
 ifeq ($($(PKG)_DEBUG_MODE),y)
 $(PKG)_SITE_METHOD := local
-$(PKG)_SITE := $(BR2_EXTERNAL_RJ_PATH)/source/$(pkg)
+$(PKG)_SITE := $(BR2_EXTERNAL_RJ_PATH)/source/gnb_$(pkg)
 $(PKG)_SUBDIR := $(pkg)
 ifeq ($($(PKG)_DEBUG_OVERRIDE_MODE),y)
-$(PKG)_OVERRIDE_SRCDIR := $(BR2_EXTERNAL_RJ_PATH)/source/$(pkg)
+$(PKG)_OVERRIDE_SRCDIR := $(BR2_EXTERNAL_RJ_PATH)/source/gnb_$(pkg)
 endif
 else
 #$(PKG)_SOURCE = $(pkg)
@@ -33,17 +33,17 @@ define $(PKG)_BUILD_CMDS
 	@echo "env CROSS=$(CROSS)"
 #	entery>>>
 	@echo -e "\n\n$(PKG):make header"
-	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk header
+	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f gnb_cu.mk header
 	@echo -e "\n\n$(PKG):make build"
-	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk pre-build
-	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk build
-	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk install
+	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f gnb_cu.mk all
+	@echo -e "\n\n$(PKG):make install"
+	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f gnb_cu.mk install
 endef
 
 #define $(PKG)_BUILD_TARGET_CMDS
 #	entery>>>
 #	@echo -e "\n\n$(PKG):make install"
-#	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk install
+#	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f gnb_cu.mk install
 #endef
 
 $(eval $(generic-package))

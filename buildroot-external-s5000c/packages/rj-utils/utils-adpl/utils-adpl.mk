@@ -9,7 +9,7 @@ $(PKG)_SITE_METHOD := local
 $(PKG)_SITE := $(BR2_EXTERNAL_RJ_PATH)/source/$(pkg)
 $(PKG)_SUBDIR := $(pkg)
 ifeq ($($(PKG)_DEBUG_OVERRIDE_MODE),y)
-$(PKG)_OVERRIDE_SRCDIR = $(BR2_EXTERNAL_RJ_PATH)/source/$(pkg)
+$(PKG)_OVERRIDE_SRCDIR := $(BR2_EXTERNAL_RJ_PATH)/source/$(pkg)
 endif
 else
 #$(PKG)_SOURCE = $(pkg)

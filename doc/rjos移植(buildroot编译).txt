@@ -16,6 +16,7 @@ dnf install lzip
 yum install vim sudo  rpm-build cpio
 yum install meson ninja
 
+
 安装交叉编译器：gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu.tar.xz 
 glibc=2.33 编译内核：4.20.0
 交叉编译器：https://developer.arm.com/downloads/-/gnu-a
@@ -33,6 +34,10 @@ tar -zxvf buildroot-xxxx.tar.gz
 
 MobaXterm 进入make menuconfig 里面的输入框按Backspace按键无法删除内容的问题:
 https://blog.csdn.net/qq_37858386/article/details/136614723
+
+
+alias cp="cp -r"
+
 
 开始配置.config
 make defconfig
@@ -305,3 +310,4 @@ utils-frwk/oam_core/Makfile   174行增加$(LDFLAGS)
 utils-frwk/oam_core/oam_core_adaptr/Makfile   155行增加$(LDFLAGS)
 utils-frwk/oam_core/oam_core_demo/Makfile   6行增加$(CFLAGS)
 utils-frwk/nginx-usr/app/Makefile 135行增加$(LDFLAGS)
+utils-frwk/ddfs/dis_dev_src/src/Makefile 增加$(LDFLAGS)

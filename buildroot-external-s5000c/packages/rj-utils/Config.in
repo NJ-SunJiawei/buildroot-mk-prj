@@ -5,3 +5,4 @@ menu "rj-utils packages"
 	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-utils/utils-adpl/Config.in"
 	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-utils/utils-frwk/Config.in"
 endmenu
+

@@ -683,3 +683,4 @@ config BR2_ROOTFS_POST_SCRIPT_ARGS
 	  option will be passed *after* those.
 
 endmenu
+
