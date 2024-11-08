@@ -32,6 +32,7 @@ define $(PKG)_BUILD_CMDS
 	@echo "$(PKG)_SOURCE_DIR=$(@D)"
 	@echo "env CROSS=$(CROSS)"
 	#entery>>>
+	-sh $(BASE_DIR)/base_dir_create.sh
 	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D)
 endef
 

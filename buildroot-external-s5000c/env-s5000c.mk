@@ -22,6 +22,8 @@ INSTALL_SODIR=lib64
 
 #~/prj/images
 PRJROOT=$(BASE_DIR)/target_rj
+export PRJROOT=$(BASE_DIR)/target_rj
+
 CACHE=$(PRJROOT)/cache
 ROOTFS_IMAGES=$(PRJROOT)/images/rootfs
 #uitls-adpl-api/libidl_visual

@@ -1,28 +1,18 @@
-bug1:"undefined symbol: rg_thread_add_timer_withname
-/home/buildroot-external-s5000c/source/utils-adpl-api/libras_common
-51:ADD_LIB = -lpthread -lrt -lrg-thread
-115:	$(CC) $(CFLAGS) $(INCLUDE) $(ALL_OBJS) $(LDFLAGS) $(ADD_LIB) -o $(LIB_OUTPUT)
+qemu虚机调试
 
-fix2:linux
-make menuconfig ===>修改产出镜像为Image.gz==》gzip
+qemu-system-aarch64.exe -m 2048 -cpu cortex-a72 -smp 8,sockets=4,cores=2 -M virt -bios C:\D\openEuler\QEMU_EFI.fd -device VGA -device nec-usb-xhci -device usb-mouse -device usb-kbd -drive if=none,file=C:\D\openEuler\openEuler-22.03-LTS-SP1-aarch64.qcow2,id=hd0 -device virtio-blk-device,drive=hd0 -net nic -net tap,ifname=tap0,script=no,downscript=no
 
+ifconfig eth0 192.168.1.92/24
 
+rpm -ivh --replacepkgs --force --nodeps *.rpm
 -----------------------------------------------------
-1、调整rootfs目录结构:
-    cp bin usr/
-	cp sbin usr/
-	cp lib usr/
-	cp lib64 usr/
-	rm -rf bin sbin lib lib64
-	mkdir usr/local
-	cp lib usr/local
-	cp lib64 usr/local
-2、cp -rf * / -n
-   cp -rf /usr/local/lib/systemd/*  /usr/lib/systemd -n
-3、/etc/ld.so.preload删除
-4、ldconfig
-5、export LD_LIBRARY_PATH="/usr/local/lib:/usr/local/lib64:/lib:/lib64:/usr/local/lib64/gNB_CU/cu_cp/common/utils/lib:/usr/local/lib64/gNB_CU/cu_cp/interfaces/lib/:/usr/local/lib64/common/interfaces/lib:/usr/local/lib64/common/asn/lib/:/usr/local/lib64/gNB_CU/cu_cp/l3/x2ap/thirdparty"
-   vim ~/.bashrc 添加 用户生效
-   source ~/.bashrc
-   /etc/profile 添加全局生效
-6、execute_cu.sh屏蔽export LD_LIBRARY_PATH=
+
+检查是否有库未链接 nm -n lib.so | grep ' U '
+
+echo "/lib64/libpsh_essence.so" >> /etc/ld.so.preload  ???? 优先链接
+libras_common.so需要链接  -lrg-thread -lzlog -lzct -lzformat -lrg_ham
+
+1、cp -rf * / -n
+2、ldconfig
+3、systemctl list-units --type=service --all   查看所有加载服务
+   systemctl list-units --type=service --state=running

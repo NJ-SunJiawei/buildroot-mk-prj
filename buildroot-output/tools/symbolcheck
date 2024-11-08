@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# 指定要检查的目录
+LIB_DIR=$1
+
+# 遍历目录中的所有 .so 文件
+for lib in "$LIB_DIR"/*.so; do
+    # 获取库的绝对路径
+    LIB_ABS=$(readlink -f "$lib")
+
+    # 输出库的路径
+    echo "Checking library: $LIB_ABS"
+
+    # 使用 ldd 列出依赖的 .so 文件
+    echo "Dependencies:"
+    ldd "$LIB_ABS"
+    echo ""
+
+    # 使用 nm 查找未定义的符号
+    echo "Undefined symbols:"
+    nm -g "$LIB_ABS" | grep ' U ' || echo "No undefined symbols found."
+    echo ""
+done
