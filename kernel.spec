@@ -1,4 +1,4 @@
-yum install -y gcc make rpm-build ncurses-devel openssl openssl-devel bc bison flex elfutils-libelf-devel dwarves
+yum install -y gcc make rpm-build ncurses-devel openssl openssl-devel bc bison flex elfutils-libelf-devel dwarves perl
 --------------------------------------------------------------------
 # 解压 .tar.xz 文件
 tar -xJf linux-5.10.1-openeuler.tar.xz
