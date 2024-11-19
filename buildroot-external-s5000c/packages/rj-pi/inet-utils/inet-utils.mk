@@ -1,8 +1,8 @@
-#2024-10-24 create by sjw
+#2024-10-30 create by sjw
 
-## utils-adpl module
-pkg := utils-frwk
-PKG := UTILS_FRWK
+## om module
+pkg := inet-utils
+PKG := INET_UTILS
 
 ifeq ($($(PKG)_DEBUG_MODE),y)
 $(PKG)_SITE_METHOD := local
@@ -38,12 +38,14 @@ define $(PKG)_BUILD_CMDS
 	@echo -e "\n\n$(PKG):make build"
 	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk pre-build
 	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk build
-endef
-
-define $(PKG)_BUILD_TARGET_CMDS
-#	entery>>>
 	@echo -e "\n\n$(PKG):make install"
 	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk install
 endef
+
+#define $(PKG)_BUILD_TARGET_CMDS
+#	entery>>>
+#	@echo -e "\n\n$(PKG):make install"
+#	$(EXTERNAL_TARGET_CONFIGURE_OPTS) $(MAKE) $(RJ_ENVS) -C $(@D) -f system.mk install
+#endef
 
 $(eval $(generic-package))

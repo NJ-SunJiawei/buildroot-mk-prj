@@ -11,6 +11,6 @@ docker run --name make_pj_$name \
 		-v /tmp/.X11-unix:/tmp/.X11-unix  \
 		-v /root/.Xauthority:/root/.Xauthority \
 		-e XAUTHORITY=/root/.Xauthority \
-		openeuler-22.03-lts-sp3:gxx \
+		openeuler-22.03-lts-sp3:make	\
 		/bin/bash
 

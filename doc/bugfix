@@ -1,28 +1,325 @@
-bug1:"undefined symbol: rg_thread_add_timer_withname
-/home/buildroot-external-s5000c/source/utils-adpl-api/libras_common
-51:ADD_LIB = -lpthread -lrt -lrg-thread
-115:	$(CC) $(CFLAGS) $(INCLUDE) $(ALL_OBJS) $(LDFLAGS) $(ADD_LIB) -o $(LIB_OUTPUT)
+qemu虚机调试
 
-fix2:linux
-make menuconfig ===>修改产出镜像为Image.gz==》gzip
+qemu-system-aarch64.exe -m 2048 -cpu cortex-a72 -smp 8,sockets=4,cores=2 -M virt -bios C:\D\openEuler\QEMU_EFI.fd -device VGA -device nec-usb-xhci -device usb-mouse -device usb-kbd -drive if=none,file=C:\D\openEuler\openEuler-22.03-LTS-SP1-aarch64.qcow2,id=hd0 -device virtio-blk-device,drive=hd0 -net nic -net tap,ifname=tap0,script=no,downscript=no
+
+qemu-system-aarch64.exe -m 2048 -cpu cortex-a72 -smp 8,sockets=4,cores=2 -M virt -bios C:\D\openEuler\QEMU_EFI.fd -device VGA -device nec-usb-xhci -device usb-mouse -device usb-kbd -drive if=none,file=C:\D\openEuler\openEuler-22.03-LTS-SP1-aarch64.qcow2,id=hd0 -device virtio-blk-device,drive=hd0 -device e1000,netdev=net0,mac=52:54:00:12:34:56 -netdev tap,id=net0,ifname=TAP0,script=no,downscript=no -device e1000,netdev=net1,mac=52:54:00:12:34:57 -netdev tap,id=net1,ifname=TAP1,script=no,downscript=no -device e1000,netdev=net2,mac=52:54:00:12:34:58 -netdev tap,id=net2,ifname=TAP2,script=no,downscript=no
+
+qemu-system-aarch64.exe -m 2048 -cpu cortex-a72 -smp 8,sockets=4,cores=2 -M virt -bios C:\D\openEuler\QEMU_EFI.fd -device VGA -device nec-usb-xhci -device usb-mouse -device usb-kbd -drive if=none,file=C:\D\openEuler\openEuler-22.03-LTS-SP1-aarch64.qcow2,id=hd0 -device virtio-blk-device,drive=hd0 -net nic -net user,hostfwd=tcp::2222-:22 -device e1000,netdev=net1,mac=52:54:00:12:34:57 -netdev tap,id=net1,ifname=TAP1,script=no,downscript=no -device e1000,netdev=net2,mac=52:54:00:12:34:58 -netdev tap,id=net2,ifname=TAP2,script=no,downscript=no
 
 
+ifconfig eth0 192.168.1.92/24
+
+rpm -ivh --replacepkgs --force --nodeps *.rpm
 -----------------------------------------------------
-1、调整rootfs目录结构:
-    cp bin usr/
-	cp sbin usr/
-	cp lib usr/
-	cp lib64 usr/
-	rm -rf bin sbin lib lib64
-	mkdir usr/local
-	cp lib usr/local
-	cp lib64 usr/local
-2、cp -rf * / -n
-   cp -rf /usr/local/lib/systemd/*  /usr/lib/systemd -n
-3、/etc/ld.so.preload删除
-4、ldconfig
-5、export LD_LIBRARY_PATH="/usr/local/lib:/usr/local/lib64:/lib:/lib64:/usr/local/lib64/gNB_CU/cu_cp/common/utils/lib:/usr/local/lib64/gNB_CU/cu_cp/interfaces/lib/:/usr/local/lib64/common/interfaces/lib:/usr/local/lib64/common/asn/lib/:/usr/local/lib64/gNB_CU/cu_cp/l3/x2ap/thirdparty"
-   vim ~/.bashrc 添加 用户生效
-   source ~/.bashrc
-   /etc/profile 添加全局生效
-6、execute_cu.sh屏蔽export LD_LIBRARY_PATH=
+-----------------------------------------------------
+
+检查是否有库未链接 nm -n lib.so | grep ' U '
+
+1、cp -rf * / -n
+2、ldconfig （必须执行）
+3、systemctl list-units --type=service --all   查看所有加载服务
+   systemctl list-units --type=service --state=running
+   
+-----------------------------------------------------
+-----------------------------------------------------
+1、eal_intr_thread_main() 屏蔽pthread_setschedparam
+-----------------------------------------------------
+容器调试：
+1、安装yum install -y systemd net-tools util-linux pciutils iproute util-linux (hostname)，或者离线包安装
+    yum install binutils(nm命令) vim
+2、 vi /etc/sysctl.conf添加
+'''
+net.ipv6.conf.all.disable_ipv6 = 0
+net.ipv6.conf.default.disable_ipv6 = 0
+''' 
+执行sysctl -p
+
+2、创建touch /etc/version（/etc/gtpuPacketRelay/bh_bind.sh为了判定为bbu_mc_s5000cm）
+'''
+==============================================
+Type    : rootfs
+Product : bbu_mc_s5000cm
+Version : v1.0
+Git SHA1: 2ee1512
+Build   : 2024/09/08 04:22:21
+
+
+==============================================
+'''
+（这个好像要移二进制）
+3、bsp_pd.service==>/lib/systemd/system/bsp_pd.service
+                 ==>/etc/systemd/system/multi-user.target.wants/bsp_pd.service(链接)
+'''
+[Unit]
+Description=bsp_pd
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/etc/bsp_pd/bsp_pd.sh start
+ExecStop=/etc/bsp_pd/bsp_pd.sh stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+'''
+（这个还好，手动移植脚本，不需要二进制）
+   bspinfo.service==>/lib/systemd/system/bspinfo.service
+                  ==>/etc/systemd/system/multi-user.target.wants/bspinfo.service（链接）
+   ln -s /lib/systemd/system/bspinfo.service /etc/systemd/system/multi-user.target.wants/bspinfo.service
+'''
+[Unit]
+Description=BSPINFO daemon
+After=ham.service
+Wants=ham.service
+
+[Service]
+Type=simple
+ExecStart=/etc/rc.d/init.d/rg-bspinfo start
+ExecStop=/etc/rc.d/init.d/rg-bspinfo stop
+RemainAfterExit=yes
+LimitCORE=infinity
+
+[Install]
+WantedBy=multi-user.target
+'''
+   
+4、docker run -itd --name=vcu -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:base /usr/sbin/init
+
+5、bindDockerNic.sh（宿主机执行）
+'''
+set -x
+pid=$(docker inspect --format '{{.State.Pid}}' vcu)
+ip link set enp11s0f0 down
+ip link set enp11s0f0 name eno2
+ip link set enp11s0f1 down
+ip link set enp11s0f1 name enp4s0f0
+ip link set eno2 netns $pid
+ip link set enp4s0f0 netns $pid
+'''
+执行完之后，在docker里确定网卡可见(ifconfig -a)
+解绑：宿主执行
+./dpdk-devbind.py -b i40e 0000:0b:00.0
+./dpdk-devbind.py -b i40e 0000:0b:00.1
+
+6、ln -s /usr/bin/python3 /usr/bin/python
+   yum install iproute 不然使用dpdk-devbind会报错
+
+7、vi /etc/gtpuPacketRelay/bh_bind.sh 修改
+'''
+if [[ -n $is_mc_s5000cm ]]; then
+    cu_bh="enp4s0f0"
+    cu_mh="eno2"
+    cu_other="enp1s0f1"
+'''
+bh_bind.sh脚本bind_port() --bind=vfio-pci //(modprobe vfio-pci) 当开启IO虚拟化采用这个驱动
+ps：https://mails.dpdk.org/archives/users/2020-April/004806.html
+'''
+
+修改后执行：/etc/gtpuPacketRelay/bh_bind.sh restart
+dpdk-devbind -s和cat /etc/gtpuPacketRelay/ifcfg-prdpdk查看结果
+
+8、
+/sbin/gtpuPacketRelay/pr_dpdk_main.sh （修改白名单，我的版本没有）
+/usr/sbin/cu/execute_pdcp.sh，设置qat_enable=0
+
+修改/sbin/startup
+'''
+
+#! /bin/sh
+########################################################################
+# Description : 通用进程、ko服务管理脚本
+#
+# Authors     : liujiaying@ruijie.com.cn
+#
+# Version     : 1.0.0
+#
+# Notes       : 由base_sys提供
+#
+########################################################################
+
+. /etc/profile
+
+help_info()
+{
+    echo "Usage: startup {start|stop|reload|restart|status} <prog_name> [param] ..."
+    echo ""
+    echo "Description:"
+    echo "  startup is a common process daemon manager."
+    echo ""
+    echo "Parameters:"
+    echo "  {start|stop|reload|restart|status}"
+    echo "      start   --  start serivce <prog_name>"
+    echo "      stop    --  stop service <prog_name>"
+    echo "      reload  --  reload service <prog_name>"
+    echo "      restart --  restart service <prog_name>, same as restart"
+    echo "      status  --  show the status of service <prog_name>"
+    echo ""
+    echo "  <prog_name> --  the process name with absolute path"
+    echo ""
+    echo "  [param] ... --  optional args, startup will pass args [param] ... to service <prog_name>"
+    echo ""
+    echo "Example:"
+    echo "1. start a daemon name tftpd with args '--root /var/run/tftp':"
+    echo " # startup start /sbin/tftpd --root /var/run/tftp"
+    echo "2. stop the daemon tftpd, must use the absolute path:"
+    echo " # startup stop /sbin/tftpd"
+    echo "3. check the status of tftpd:"
+    echo " # startup status /sbin/tftpd"
+    echo " or"
+    echo " # startup status tftpd"
+}
+
+# 脚本执行动作：start, stop, restart
+action=${1}
+if [ -z "${action}" ]; then
+    help_info >&2
+    exit 1
+fi
+
+shift 1
+
+# 检查是不是ko
+is_ko='n'
+if [ "$1" == "-k" ]; then
+    is_ko='y'
+    shift 1
+fi
+
+# 启动的可执行文件或者ko的路径
+PROG=${1}
+if [ -z "${PROG}" ]; then
+    echo "empty startup target!" >&2
+    exit 1
+elif [ "${is_ko}" == 'n' -a "${action}" != 'status' -a "${PROG:0:1}" != '/' ]; then
+    # stop普通进程必须提供完整的路径名，防止误杀进程
+    echo "error: '${PROG}' must be an absolute path!" >&2
+    exit 1
+fi
+shift 1
+
+# 启动参数
+ARGS=$*
+
+# 进程名字
+PROG_NAME=${PROG/*\//}
+
+start_process()
+{
+    if [ "${is_ko}" == 'y' ]; then
+        insmod ${PROG} ${ARGS}
+    else
+        exec ${PROG} ${ARGS} &
+    fi
+}
+
+stop_process()
+{
+    if [ "${is_ko}" == 'y' ]; then
+        rmmod ${PROG}
+    else
+        pids=$(pidof ${PROG})
+        if [ -z "${pids}" ]; then
+            echo "${PROG} has already exist!" >&2
+            return 1
+        fi
+
+        kill -15 $(pidof ${PROG})
+    fi
+}
+
+case "${action}" in
+start)
+    echo "Starting ${PROG_NAME}..."
+    start_process
+    ;;
+
+stop)
+    echo "Stopping ${PROG_NAME}..."
+    stop_process
+    ;;
+
+restart|reload)
+    ${0} stop
+    sleep 1
+    ${0} start
+    ;;
+
+status)
+    if [ "${is_ko}" == 'y' ]; then
+        lsmod | grep -w "${PROG_NAME//-/_}"
+        exit $?
+    fi
+
+    pids="$(pidof ${PROG})"
+    if [ -z "${pids}" ]; then
+        echo "${PROG} not running!"
+        exit 1
+    fi
+
+    ps -ef -q ${pids}
+    ;;
+*)
+    exit 1
+    ;;
+esac
+'''
+9、/etc/profile添加如下操作(不然oam_core和oam_core_adapter起不来)
+'''
+# inter variable
+LD_LIBRARY_PATH="/lib:/lib64"
+TMPDIR="/run/.5gnr/app_data/"
+LIBYANG_EXTENSIONS_PLUGINS_DIR="/lib64/libyang/extensions/"
+LIBYANG_USER_TYPES_PLUGINS_DIR="/lib64/libyang/user_types/"
+DATA_RGOS_DIR="/data/.5gnr/app_data/"
+RGOS_DIR="/.5gnr/app_data/"
+LOG_FLASH_DIR_UPDATE="/data/.5gnr/log/"
+LOG_FLASH_DIR="/var/log/"
+LOG_ISOLATE_DIR="/run_isolate/log/"
+LOG_TEMP_DIR="/run/.5gnr/log/"
+ZLOG_FLASH_DIR_UPDATE="/data/.5gnr/log/zlog"
+ZLOG_FLASH_DIR="/var/log/zlog"
+ZLOG_ISOLATE_DIR="/run_isolate/log/zlog"
+ZLOG_TEMP_DIR="/run/.5gnr/log/zlog"
+TERMINFO="/usr/share/terminfo"
+VALGRIND_LIB="/usr/lib64/valgrind"
+ZLOG_PROFILE_ERROR="/run/.zlog.error.log"
+ZCT_ERROR="/run/.zct.error.log"
+PARTITION_ADJ_DIR="/run_isolate"
+
+export LD_LIBRARY_PATH
+export TMPDIR
+export LIBYANG_EXTENSIONS_PLUGINS_DIR
+export LIBYANG_USER_TYPES_PLUGINS_DIR
+export DATA_RGOS_DIR
+export RGOS_DIR
+export LOG_FLASH_DIR_UPDATE
+export LOG_FLASH_DIR
+export LOG_ISOLATE_DIR
+export LOG_TEMP_DIR
+export ZLOG_FLASH_DIR_UPDATE
+export ZLOG_FLASH_DIR
+export ZLOG_ISOLATE_DIR
+export ZLOG_TEMP_DIR
+export TERMINFO
+export VALGRIND_LIB
+export ZLOG_PROFILE_ERROR
+export ZCT_ERROR
+export PARTITION_ADJ_DIR
+
+export TZUTC=":/usr/share/zoneinfo/right/UTC"
+export CURL_CA_BUNDLE="/etc/curlssl/cacert.pem"
+
+export PROMPT_COMMAND='history -a'
+
+if [ `who am i| awk '{print $NF}'|awk -F'(' '{print NF}'` -eq 2 ]; then
+
+    unset HISTTIMEFORMAT
+    export HISTTIMEFORMAT="[%F %T]-[`whoami`]- at [`who am i| awk '{print $NF}'`] "
+else
+    unset HISTTIMEFORMAT
+    export HISTTIMEFORMAT="[%F %T]-[`whoami`]- at [`hostname`] "
+fi
+'''
+
+systemctl restart pr_dpdk.service

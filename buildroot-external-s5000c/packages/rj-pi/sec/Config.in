@@ -1,0 +1,46 @@
+#2024-10-24 create by sjw
+
+config BR2_PACKAGE_SEC
+	bool "sec"
+	default y
+	help
+		sec git.
+
+config SEC_DEBUG_MODE
+	bool "sec debug mode"
+	depends on BR2_PACKAGE_SEC
+	default y
+	help
+		sec use XXX_OVERRIDE_SRCDIR.
+
+choice
+    prompt "src debug type"
+    default SEC_DEBUG_LOCAL_MODE
+	depends on SEC_DEBUG_MODE
+
+config SEC_DEBUG_LOCAL_MODE
+    bool "local debug type"
+    help
+		Src use local debug type(copy to output build).
+
+config SEC_DEBUG_OVERRIDE_MODE
+    bool "override debug type"
+    help
+		Src use override debug type(src local build).
+endchoice
+
+
+config SEC_REPO_DIRECTORY_LOCATION
+	string "repos of sec"
+	default "http://192.168.210.6.8080/TQ_PI"
+	depends on BR2_PACKAGE_SEC
+	depends on !SEC_DEBUG_MODE
+	help
+		reps of sec.
+
+config SEC_DEPENDENCIES_MODULES
+	string "depended on"
+	default "utils-frwk"
+	depends on BR2_PACKAGE_SEC
+	help
+		depended on

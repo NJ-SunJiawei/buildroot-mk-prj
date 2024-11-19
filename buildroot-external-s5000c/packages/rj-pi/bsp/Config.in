@@ -1,0 +1,58 @@
+#2024-10-24 create by sjw
+
+config BR2_PACKAGE_BSP
+	bool "bsp"
+	default y
+	help
+		bsp git.
+
+config BSP_DEBUG_MODE
+	bool "bsp debug mode"
+	depends on BR2_PACKAGE_BSP
+	default y
+	help
+		bsp use XXX_OVERRIDE_SRCDIR.
+
+choice
+    prompt "src debug type"
+    default BSP_DEBUG_LOCAL_MODE
+	depends on BSP_DEBUG_MODE
+
+config BSP_DEBUG_LOCAL_MODE
+    bool "local debug type"
+    help
+		Src use local debug type(copy to output build).
+
+config BSP_DEBUG_OVERRIDE_MODE
+    bool "override debug type"
+    help
+		Src use override debug type(src local build).
+endchoice
+
+
+config BSP_REPO_DIRECTORY_LOCATION
+	string "repos of BSP"
+	default "http://192.168.210.6.8080/TQ_PI"
+	depends on BR2_PACKAGE_BSP
+	depends on !BSP_DEBUG_MODE
+	help
+		reps of bsp.
+
+config BSP_DEPENDENCIES_MODULES
+	string "depended on"
+	default ""
+	depends on BR2_PACKAGE_BSP
+	help
+		depended on
+#################################
+config KCONFIG_dfd
+	bool "dfd"
+	default y
+	help
+		from the dfd homepage
+
+config QATVER
+	string "qat version"
+	default "1.7-4.6.0"
+	help
+		qat version

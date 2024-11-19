@@ -1,0 +1,53 @@
+#2024-10-24 create by sjw
+
+config BR2_PACKAGE_DFX
+	bool "dfx"
+	default y
+	help
+		dfx git.
+
+config DFX_DEBUG_MODE
+	bool "dfx debug mode"
+	depends on BR2_PACKAGE_DFX
+	default y
+	help
+		dfx use XXX_OVERRIDE_SRCDIR.
+
+choice
+    prompt "src debug type"
+    default DFX_DEBUG_LOCAL_MODE
+	depends on DFX_DEBUG_MODE
+
+config DFX_DEBUG_LOCAL_MODE
+    bool "local debug type"
+    help
+		Src use local debug type(copy to output build).
+
+config DFX_DEBUG_OVERRIDE_MODE
+    bool "override debug type"
+    help
+		Src use override debug type(src local build).
+endchoice
+
+
+config DFX_REPO_DIRECTORY_LOCATION
+	string "repos of dfx"
+	default "http://192.168.210.6.8080/TQ_PI"
+	depends on BR2_PACKAGE_DFX
+	depends on !DFX_DEBUG_MODE
+	help
+		reps of dfx.
+
+config DFX_DEPENDENCIES_MODULES
+	string "depended on"
+	default "utils-frwk"
+	depends on BR2_PACKAGE_DFX
+	help
+		depended on
+##################################
+config CONFIG_DEV_SC_CFG_DIR
+	string "selfcheck items configure dir"
+	default "/etc/dev_sc/item"
+	depends on BR2_PACKAGE_DFX
+	help
+		configure dir of selfcheck items

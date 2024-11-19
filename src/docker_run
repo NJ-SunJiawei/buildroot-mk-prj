@@ -16,4 +16,4 @@ docker run --name make_pj_$name -it \
 	-v /tmp/.X11-unix:/tmp/.X11-unix  \
 	-v /tmp/.docker.xauth_$name:/tmp/.docker.xauth_$name \
 	-e XAUTHORITY=/tmp/.docker.xauth_$name \
-	openeuler-22.03-lts-sp3:gxx /bin/bash
+	openeuler-22.03-lts-sp3:make /bin/bash

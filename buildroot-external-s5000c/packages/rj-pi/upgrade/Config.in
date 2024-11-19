@@ -1,0 +1,46 @@
+#2024-10-24 create by sjw
+
+config BR2_PACKAGE_UPGRADE
+	bool "upgrade"
+	default y
+	help
+		upgrade git.
+
+config UPGRADE_DEBUG_MODE
+	bool "upgrade debug mode"
+	depends on BR2_PACKAGE_UPGRADE
+	default y
+	help
+		upgrade use XXX_OVERRIDE_SRCDIR.
+
+choice
+    prompt "src debug type"
+    default UPGRADE_DEBUG_LOCAL_MODE
+	depends on UPGRADE_DEBUG_MODE
+
+config UPGRADE_DEBUG_LOCAL_MODE
+    bool "local debug type"
+    help
+		Src use local debug type(copy to output build).
+
+config UPGRADE_DEBUG_OVERRIDE_MODE
+    bool "override debug type"
+    help
+		Src use override debug type(src local build).
+endchoice
+
+
+config UPGRADE_REPO_DIRECTORY_LOCATION
+	string "repos of UPGRADE"
+	default "http://192.168.210.6.8080/TQ_PI"
+	depends on BR2_PACKAGE_UPGRADE
+	depends on !UPGRADE_DEBUG_MODE
+	help
+		reps of upgrade.
+
+config UPGRADE_DEPENDENCIES_MODULES
+	string "depended on"
+	default "utils-frwk"
+	depends on BR2_PACKAGE_UPGRADE
+	help
+		depended on

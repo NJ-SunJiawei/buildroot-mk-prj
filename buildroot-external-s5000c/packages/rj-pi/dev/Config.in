@@ -1,0 +1,46 @@
+#2024-10-24 create by sjw
+
+config BR2_PACKAGE_DEV
+	bool "dev"
+	default y
+	help
+		dev git.
+
+config DEV_DEBUG_MODE
+	bool "dev debug mode"
+	depends on BR2_PACKAGE_DEV
+	default y
+	help
+		dev use XXX_OVERRIDE_SRCDIR.
+
+choice
+    prompt "src debug type"
+    default DEV_DEBUG_LOCAL_MODE
+	depends on DEV_DEBUG_MODE
+
+config DEV_DEBUG_LOCAL_MODE
+    bool "local debug type"
+    help
+		Src use local debug type(copy to output build).
+
+config DEV_DEBUG_OVERRIDE_MODE
+    bool "override debug type"
+    help
+		Src use override debug type(src local build).
+endchoice
+
+
+config DEV_REPO_DIRECTORY_LOCATION
+	string "repos of DEV"
+	default "http://192.168.210.6.8080/TQ_PI"
+	depends on BR2_PACKAGE_DEV
+	depends on !DEV_DEBUG_MODE
+	help
+		reps of dev.
+
+config DEV_DEPENDENCIES_MODULES
+	string "depended on"
+	default "utils-frwk utils-adpl-api utils-cstm utils_com bsp"
+	depends on BR2_PACKAGE_DEV
+	help
+		depended on

@@ -1,0 +1,47 @@
+#2024-10-24 create by sjw
+
+config BR2_PACKAGE_INET_UTILS
+	bool "inet-utils"
+	default y
+	select BR2_PACKAGE_LIBCAP
+	help
+		inet-utils git.
+
+config INET_UTILS_DEBUG_MODE
+	bool "inet-utils debug mode"
+	depends on BR2_PACKAGE_INET_UTILS
+	default y
+	help
+		inet-utils use XXX_OVERRIDE_SRCDIR.
+
+choice
+    prompt "src debug type"
+    default INET_UTILS_DEBUG_LOCAL_MODE
+	depends on INET_UTILS_DEBUG_MODE
+
+config INET_UTILS_DEBUG_LOCAL_MODE
+    bool "local debug type"
+    help
+		Src use local debug type(copy to output build).
+
+config INET_UTILS_DEBUG_OVERRIDE_MODE
+    bool "override debug type"
+    help
+		Src use override debug type(src local build).
+endchoice
+
+
+config INET_UTILS_REPO_DIRECTORY_LOCATION
+	string "repos of inet-utils"
+	default "http://192.168.210.6.8080/TQ_PI"
+	depends on BR2_PACKAGE_INET_UTILS
+	depends on !INET_UTILS_DEBUG_MODE
+	help
+		reps of inet-utils.
+
+config INET_UTILS_DEPENDENCIES_MODULES
+	string "depended on"
+	default "utils-frwk libcap"
+	depends on BR2_PACKAGE_INET_UTILS
+	help
+		depended on

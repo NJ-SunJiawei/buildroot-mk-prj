@@ -1,3 +1,10 @@
 menu "rj-pi packages"
 	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-pi/om/Config.in"
+	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-pi/tm/Config.in"
+	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-pi/sec/Config.in"
+	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-pi/inet-utils/Config.in"
+	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-pi/dfx/Config.in"
+	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-pi/upgrade/Config.in"
+	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-pi/bsp/Config.in"
+	source "$BR2_EXTERNAL_RJ_PATH/packages/rj-pi/dev/Config.in"
 endmenu

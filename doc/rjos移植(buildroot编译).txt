@@ -118,7 +118,7 @@ skeleton-init-common skeleton-init-sysv skeleton 会安装到系统（这是啥�
 docker commit 06181f2280fb openeuler-gxx:latest 把当前的镜像保存下来
 
 
-外部依赖(buildroot有)：ncurses/ncurcesw(6.3)  libzlib(1.2.13) libxml(2.10.3)   json-c(0.16)
+外部依赖(buildroot有)：ncurses/ncurcesw(6.3)  libzlib(1.2.13) libxml(2.10.3)   json-c(0.16) libcap(2.65)
                    
 ??? 外部依赖：dpdk(19.11.5) nginx(1.12.2) lua(5.3.6) readline(8.2/6.2)
 
@@ -311,3 +311,14 @@ utils-frwk/oam_core/oam_core_adaptr/Makfile   155行增加$(LDFLAGS)
 utils-frwk/oam_core/oam_core_demo/Makfile   6行增加$(CFLAGS)
 utils-frwk/nginx-usr/app/Makefile 135行增加$(LDFLAGS)
 utils-frwk/ddfs/dis_dev_src/src/Makefile 增加$(LDFLAGS)
+
+---------------------
+bug1:"undefined symbol: rg_thread_add_timer_withname
+/home/buildroot-external-s5000c/source/utils-adpl-api/libras_common
+51:ADD_LIB = -lpthread -lrt -lrg-thread
+115:	$(CC) $(CFLAGS) $(INCLUDE) $(ALL_OBJS) $(LDFLAGS) $(ADD_LIB) -o $(LIB_OUTPUT)
+
+fix2:linux
+make menuconfig ===>修改产出镜像为Image.gz==》gzip
+
+fix3:om system.mk 127行，放开链接

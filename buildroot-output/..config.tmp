@@ -1,6 +1,11 @@
 deps_config := \
 	/home/buildroot-external-s5000c/packages/rj-gnb/cu/Config.in \
 	/home/buildroot-external-s5000c/packages/rj-gnb/Config.in \
+	/home/buildroot-external-s5000c/packages/rj-pi/upgrade/Config.in \
+	/home/buildroot-external-s5000c/packages/rj-pi/dfx/Config.in \
+	/home/buildroot-external-s5000c/packages/rj-pi/inet-utils/Config.in \
+	/home/buildroot-external-s5000c/packages/rj-pi/sec/Config.in \
+	/home/buildroot-external-s5000c/packages/rj-pi/tm/Config.in \
 	/home/buildroot-external-s5000c/packages/rj-pi/om/Config.in \
 	/home/buildroot-external-s5000c/packages/rj-pi/Config.in \
 	/home/buildroot-external-s5000c/packages/rj-utils/utils-frwk/Config.in \
