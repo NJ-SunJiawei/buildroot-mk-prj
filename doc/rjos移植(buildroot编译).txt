@@ -118,7 +118,7 @@ skeleton-init-common skeleton-init-sysv skeleton 会安装到系统（这是啥�
 docker commit 06181f2280fb openeuler-gxx:latest 把当前的镜像保存下来
 
 
-外部依赖(buildroot有)：ncurses/ncurcesw(6.3)  libzlib(1.2.13) libxml(2.10.3)   json-c(0.16) libcap(2.65)
+外部依赖(buildroot有)：ncurses/ncurcesw(6.3)  libzlib(1.2.13) libxml(2.10.3)   json-c(0.16) libcap(2.65) dos2unix(7.4.3)
                    
 ??? 外部依赖：dpdk(19.11.5) nginx(1.12.2) lua(5.3.6) readline(8.2/6.2)
 

@@ -1,3 +1,6 @@
+
+----------------------------------------------------
+----------------------------------------------------
 qemu虚机调试
 
 qemu-system-aarch64.exe -m 2048 -cpu cortex-a72 -smp 8,sockets=4,cores=2 -M virt -bios C:\D\openEuler\QEMU_EFI.fd -device VGA -device nec-usb-xhci -device usb-mouse -device usb-kbd -drive if=none,file=C:\D\openEuler\openEuler-22.03-LTS-SP1-aarch64.qcow2,id=hd0 -device virtio-blk-device,drive=hd0 -net nic -net tap,ifname=tap0,script=no,downscript=no
@@ -19,16 +22,37 @@ rpm -ivh --replacepkgs --force --nodeps *.rpm
 2、ldconfig （必须执行）
 3、systemctl list-units --type=service --all   查看所有加载服务
    systemctl list-units --type=service --state=running
-   
+
+journalctl -f
 -----------------------------------------------------
 -----------------------------------------------------
-1、eal_intr_thread_main() 屏蔽pthread_setschedparam
+***1、eal_intr_thread_main() 屏蔽pthread_setschedparam
 -----------------------------------------------------
 容器调试：
-1、安装yum install -y systemd net-tools util-linux pciutils iproute util-linux (hostname)，或者离线包安装
+1、
+	必须先删除rm -rf /lib64/libssh* 
+	          ldconfig
+	安装yum install -y systemd net-tools util-linux pciutils iproute hostname ipmitool gdb，或者离线包安装
+       yum install libatomic （/sbin/rdb-server必备）
+	   yum install btrfs-progs ( /usr/sbin/btrfs_balance 必备)
     yum install binutils(nm命令) vim
+	yum install findutils（find） ###iputils（ping）
+	yum install ethtool
+
+gdb:
+dnf debuginfo-install glibc-2.34-70.oe2203.aarch64
+dnf debuginfo-install json-c-0.15-2.oe2203.aarch64 libxml2-2.9.12-5.oe2203.aarch64 xz-libs-5.2.5-1.oe2203.aarch64 zlib-1.2.11-19.oe2203.aarch64
+
+ln -s /usr/bin/ping.elf /usr/bin/ping
+ln -s /usr/bin/ping.elf /usr/bin/ping6
+
+
 2、 vi /etc/sysctl.conf添加
 '''
+#kernel.sysrq=1
+#net.core.rmem_max=851968
+#net.ipv4.tcp_syncookies=1
+#net.ipv4.ip_local_reserved_ports=55541
 net.ipv6.conf.all.disable_ipv6 = 0
 net.ipv6.conf.default.disable_ipv6 = 0
 ''' 
@@ -46,9 +70,19 @@ Build   : 2024/09/08 04:22:21
 
 ==============================================
 '''
+
+2、vi /usr/lib/systemd/system/nginx.service(废弃)
+[Service]
+User=root
+
+vi /etc/nginx-ui/start-pre
+root:root
+
+
 （这个好像要移二进制）
 3、bsp_pd.service==>/lib/systemd/system/bsp_pd.service
                  ==>/etc/systemd/system/multi-user.target.wants/bsp_pd.service(链接)
+   vi /etc/bsp_pd/bsp_pd.sh
 '''
 [Unit]
 Description=bsp_pd
@@ -63,10 +97,145 @@ RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 '''
+'''
+#!/bin/sh
+
+. /etc/profile
+
+PROG_NAME=bsp_pd.elf
+PROG=/sbin/${PROG_NAME}
+
+LTEU_MGMT_PROC_NAME=lteu_mgmt.elf
+LTEU_MGMT_PROC=/usr/sbin/${LTEU_MGMT_PROC_NAME}
+
+case "${1}" in
+        start)
+                #echo "Starting ${LTEU_MGMT_PROC_NAME}..."
+                #exec ${LTEU_MGMT_PROC} &
+
+                echo "Starting ${PROG_NAME}..."
+                # 让cpld开启1pps
+                ipmitool raw 0x3a 0xb7 1 0x5E
+                ipmitool raw 0x3a 0xb7 0
+
+                # 让cpld开启tod
+                ipmitool raw 0x3a 0xb8 1 0x10 0xFB
+                ipmitool raw 0x3a 0xb8 0
+
+                #if [ ! -d "/sys/bus/i2c/devices/i2c-0/0-0070/" ]; then
+                #       echo pca9548 0x70 >  /sys/bus/i2c/devices/i2c-0/new_device
+                #       sleep 1
+                #fi
+
+                #if [ ! -d "/sys/bus/i2c/devices/i2c-0/0-0077/" ]; then
+                #       echo pca9548 0x77 >  /sys/bus/i2c/devices/i2c-0/new_device
+                #       sleep 1
+                #fi
+
+                if [ ! -d "/run/.5gnr/app_data/gps/" ]; then
+                        mkdir -p /run/.5gnr/app_data/gps/
+                fi
+
+                if [ ! -f "/etc/mcu_status" ]; then
+                        touch /etc/mcu_status
+                fi
+
+                #bmc_ver=`sed -n 2p /etc/hwver/mcu`
+                #hw_ver=$(rg_setmac | dos2unix | grep -w HardwareVersion | awk -F '=' '{print $2}')
+                #if [ "$bmc_ver" != "1.0.0.0927" ] && [ "$hw_ver" != "1.00" ]; then
+                #       bmc_upgrade /usr/sbin/mcu_mng/cu_bmc_update_0927.bin &
+                #       sleep 30
+                #fi
+
+                upgrade_flag=0
+                if [ ! -d "/etc/hwver/" ]; then
+                        mkdir /etc/hwver
+                        upgrade_flag=1
+                fi
+
+                if [ ! -f "/etc/hwver/mcu" ]; then
+                        touch /etc/hwver/mcu
+                fi
+
+                mkdir -p /var/log/bsp
+                /usr/sbin/${PROG_NAME} >> /var/log/bsp/bsp.log 2>&1 &
+
+                #chmod +x /sbin/lpc_test
+                #var=`/sbin/lpc_test /dev/cpld1 0xA w | grep lpc_reg_read | awk '{print $5}'`
+                #if [[ "$var" == "0x0" || $upgrade_flag -eq 1 ]]; then
+                #if [ "$var" == "0x0" ]; then
+                #       opt="set"
+                #       if [ -f /sbin/fpga-upgrade.ko  ]; then
+                #               insmod /sbin/fpga-upgrade.ko
+                #       fi
+
+                        #if [ ! -d "/sys/class/gpio/gpio3/" ]; then
+                        #       echo 3 > /sys/class/gpio/export
+                        #       echo out > /sys/class/gpio/gpio3/direction
+                        #       echo 0 > /sys/class/gpio/gpio3/value
+                        #       usleep 100000
+                        #       echo 1 > /sys/class/gpio/gpio3/value
+                        #fi
+
+                #       sleep 25
+                #       /sbin/lpc_test /dev/cpld1 0xA w 0x1
+                #fi
+                #echo -n "1.0.0." > /etc/hwver/fpga
+                #hexdump -C /dev/port | grep 00000900 | awk '{print $5$4$3$2}' >> /etc/hwver/fpga
+#               cpld_ver0=`lpc_test /dev/cpld0 0`
+#               cpld_ver1=`lpc_test /dev/cpld0 1`
+#               cpld_ver2=`lpc_test /dev/cpld0 2`
+#               cpld_ver3=`lpc_test /dev/cpld0 3`
+#               cpld0_ver=${cpld_ver1:0-2}${cpld_ver2:0-2}${cpld_ver3:0-2}${cpld_ver0:0-2}
+#               cpld_ver0=`i2cget -y 4 0xf 0`
+#               cpld_ver1=`i2cget -y 4 0xf 1`
+#               cpld_ver2=`i2cget -y 4 0xf 2`
+#               cpld_ver3=`i2cget -y 4 0xf 3`
+#               cpld1_ver=${cpld_ver1:0-2}${cpld_ver2:0-2}${cpld_ver3:0-2}${cpld_ver0:0-2}
+#               echo $cpld0_ver"(0) "$cpld1_ver"(1) " > /etc/hwver/cpld
+
+#               boot_ok=`lpc_test /dev/cpld0 0x21`
+#               echo $boot_ok > /etc/hwver/boot_ok
+
+                #/sbin/lpc_test /dev/fpga 0x80 w 1
+                #/sbin/lpc_test /dev/cpld1 0x61 w 0x05
+
+                #/sbin/mcu_mng/mcu_ver.sh
+                #evaluate_retval
+                ;;
+
+        stop)
+                echo "Stopping ${PROG_NAME}..."
+                kill -15 `pidof ${PROG}`
+
+                #echo "Stopping ${LTEU_MGMT_PROC_NAME}..."
+                #kill -15 `pidof ${LTEU_MGMT_PROC}`
+                ;;
+
+        restart)
+                echo "Restarting ${PROG_NAME}..."
+                ${0} stop
+                sleep 1
+                ${0} start
+                ;;
+
+        status)
+                #statusproc ${PROG}
+                ps -ef -o `pidof ${PROG}`
+                #ps -ef -o `pidof ${LTEU_MGMT_PROC}`
+                ;;
+
+        *)
+                echo "Usage: ${0} {start|stop|restart|status}"
+                exit 1
+                ;;
+esac
+'''
+
 （这个还好，手动移植脚本，不需要二进制）
    bspinfo.service==>/lib/systemd/system/bspinfo.service
                   ==>/etc/systemd/system/multi-user.target.wants/bspinfo.service（链接）
-   ln -s /lib/systemd/system/bspinfo.service /etc/systemd/system/multi-user.target.wants/bspinfo.service
+   #ln -s /lib/systemd/system/bspinfo.service /etc/systemd/system/multi-user.target.wants/bspinfo.service
 '''
 [Unit]
 Description=BSPINFO daemon
@@ -83,24 +252,96 @@ LimitCORE=infinity
 [Install]
 WantedBy=multi-user.target
 '''
-   
-4、docker run -itd --name=vcu -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:base /usr/sbin/init
+'''
+#!/bin/sh
 
-5、bindDockerNic.sh（宿主机执行）
+########################################################################
+# Begin $rc_base/init.d/
+#
+# Description :
+#
+# Authors     :
+#
+# Version     :
+#
+# Notes       :
+#
+########################################################################
+
+#. /etc/sysconfig/rc
+#. ${rc_functions}
+. /etc/profile
+
+PROG_NAME=rg-bspinfo
+PROG=/usr/sbin/${PROG_NAME}
+
+process_start_recovery()
+{
+    mkdir -p /run/.5gnr/app_data/bspinfo/
+    cd /run/.5gnr/app_data/bspinfo/
+    echo -n 1.00 > HardwareVersion  
+    echo -n rgos.bin > MainFile
+    echo -n 541651 > OUI
+    echo -n 51100050 > ProductID
+    echo -n MBBU-UMCCUd-02XS > ProductModel
+    echo -n G1TW40P00007C > SerialNO
+    echo -n ttyS0 > console
+    echo -n 92:34:56:12:13:5C > ethaddr
+    echo -n 00000000000b > ethaddr_scale  
+    echo -n MBBU-UMCCUd-02XS > fdtname
+    echo -n bbu_mc_s5000cm > projectid
+    echo -n 2183 > serial0
+    echo -n 0 > serial1
+    echo -n 0 > serial2
+    echo -n 0 > serial3
+    echo -n 2024-08-01 15:03:45 > setmac_time
+    echo -n 11.0 > setmac_ver
+}
+
+process_start()
+{
+    if [ -f /lib64/libjemalloc.so ]; then
+            LD_PRELOAD="$LD_PRELOAD  /lib64/libjemalloc.so" /usr/sbin/${PROG} & 
+    elif [ -f /lib/libjemalloc.so ]; then
+            LD_PRELOAD="$LD_PRELOAD  /lib/libjemalloc.so" /usr/sbin/${PROG} &
+    else
+            exec ${PROG} &
+    fi
+}
+
+case "${1}" in
+        start)
+            echo "Starting ${PROG_NAME}..."
+            mkdir -p /run/.5gnr/log/zlog/bspinfo/
+            mkdir -p /data/.5gnr/log/zlog/bspinfo/
+            mkdir -p /run/.5gnr/app_data/
+            # process_start
+            process_start_recovery
+            #loadproc ${PROG}
+            ;;
+       
+        stop)
+            echo "Stopping ${PROG_NAME}..."
+            kill -15 `pidof ${PROG}`
+            ;;
+
+        restart)
+                 echo "Restarting ${PROG_NAME}..."
+            ${0} stop
+            sleep 1
+            ${0} start
+            ;;
+
+        status)
+            #statusproc ${PROG}
+            ;;
+        *)
+            echo "Usage: ${0} {start|stop|reload|restart|status}"
+            exit 1
+            ;;
+esac
+# End $rc_base/init.d/
 '''
-set -x
-pid=$(docker inspect --format '{{.State.Pid}}' vcu)
-ip link set enp11s0f0 down
-ip link set enp11s0f0 name eno2
-ip link set enp11s0f1 down
-ip link set enp11s0f1 name enp4s0f0
-ip link set eno2 netns $pid
-ip link set enp4s0f0 netns $pid
-'''
-执行完之后，在docker里确定网卡可见(ifconfig -a)
-解绑：宿主执行
-./dpdk-devbind.py -b i40e 0000:0b:00.0
-./dpdk-devbind.py -b i40e 0000:0b:00.1
 
 6、ln -s /usr/bin/python3 /usr/bin/python
    yum install iproute 不然使用dpdk-devbind会报错
@@ -108,8 +349,8 @@ ip link set enp4s0f0 netns $pid
 7、vi /etc/gtpuPacketRelay/bh_bind.sh 修改
 '''
 if [[ -n $is_mc_s5000cm ]]; then
-    cu_bh="enp4s0f0"
-    cu_mh="eno2"
+    cu_bh="enp11s0f0"
+    cu_mh="enp11s0f1"
     cu_other="enp1s0f1"
 '''
 bh_bind.sh脚本bind_port() --bind=vfio-pci //(modprobe vfio-pci) 当开启IO虚拟化采用这个驱动
@@ -117,154 +358,20 @@ ps：https://mails.dpdk.org/archives/users/2020-April/004806.html
 '''
 
 修改后执行：/etc/gtpuPacketRelay/bh_bind.sh restart
+dpdk-devbind -b vfio-pci 0000:0b:00.0
+dpdk-devbind -b vfio-pci 0000:0b:00.1
 dpdk-devbind -s和cat /etc/gtpuPacketRelay/ifcfg-prdpdk查看结果
+'''
+INTERFACE=enp4s0f0 PCI=0000:0b:00.1 TYPE=NG
+INTERFACE=eno2 PCI=0000:08:00.0 TYPE=CUIF1
+'''
 
 8、
 /sbin/gtpuPacketRelay/pr_dpdk_main.sh （修改白名单，我的版本没有）
 /usr/sbin/cu/execute_pdcp.sh，设置qat_enable=0
 
-修改/sbin/startup
-'''
 
-#! /bin/sh
-########################################################################
-# Description : 通用进程、ko服务管理脚本
-#
-# Authors     : liujiaying@ruijie.com.cn
-#
-# Version     : 1.0.0
-#
-# Notes       : 由base_sys提供
-#
-########################################################################
-
-. /etc/profile
-
-help_info()
-{
-    echo "Usage: startup {start|stop|reload|restart|status} <prog_name> [param] ..."
-    echo ""
-    echo "Description:"
-    echo "  startup is a common process daemon manager."
-    echo ""
-    echo "Parameters:"
-    echo "  {start|stop|reload|restart|status}"
-    echo "      start   --  start serivce <prog_name>"
-    echo "      stop    --  stop service <prog_name>"
-    echo "      reload  --  reload service <prog_name>"
-    echo "      restart --  restart service <prog_name>, same as restart"
-    echo "      status  --  show the status of service <prog_name>"
-    echo ""
-    echo "  <prog_name> --  the process name with absolute path"
-    echo ""
-    echo "  [param] ... --  optional args, startup will pass args [param] ... to service <prog_name>"
-    echo ""
-    echo "Example:"
-    echo "1. start a daemon name tftpd with args '--root /var/run/tftp':"
-    echo " # startup start /sbin/tftpd --root /var/run/tftp"
-    echo "2. stop the daemon tftpd, must use the absolute path:"
-    echo " # startup stop /sbin/tftpd"
-    echo "3. check the status of tftpd:"
-    echo " # startup status /sbin/tftpd"
-    echo " or"
-    echo " # startup status tftpd"
-}
-
-# 脚本执行动作：start, stop, restart
-action=${1}
-if [ -z "${action}" ]; then
-    help_info >&2
-    exit 1
-fi
-
-shift 1
-
-# 检查是不是ko
-is_ko='n'
-if [ "$1" == "-k" ]; then
-    is_ko='y'
-    shift 1
-fi
-
-# 启动的可执行文件或者ko的路径
-PROG=${1}
-if [ -z "${PROG}" ]; then
-    echo "empty startup target!" >&2
-    exit 1
-elif [ "${is_ko}" == 'n' -a "${action}" != 'status' -a "${PROG:0:1}" != '/' ]; then
-    # stop普通进程必须提供完整的路径名，防止误杀进程
-    echo "error: '${PROG}' must be an absolute path!" >&2
-    exit 1
-fi
-shift 1
-
-# 启动参数
-ARGS=$*
-
-# 进程名字
-PROG_NAME=${PROG/*\//}
-
-start_process()
-{
-    if [ "${is_ko}" == 'y' ]; then
-        insmod ${PROG} ${ARGS}
-    else
-        exec ${PROG} ${ARGS} &
-    fi
-}
-
-stop_process()
-{
-    if [ "${is_ko}" == 'y' ]; then
-        rmmod ${PROG}
-    else
-        pids=$(pidof ${PROG})
-        if [ -z "${pids}" ]; then
-            echo "${PROG} has already exist!" >&2
-            return 1
-        fi
-
-        kill -15 $(pidof ${PROG})
-    fi
-}
-
-case "${action}" in
-start)
-    echo "Starting ${PROG_NAME}..."
-    start_process
-    ;;
-
-stop)
-    echo "Stopping ${PROG_NAME}..."
-    stop_process
-    ;;
-
-restart|reload)
-    ${0} stop
-    sleep 1
-    ${0} start
-    ;;
-
-status)
-    if [ "${is_ko}" == 'y' ]; then
-        lsmod | grep -w "${PROG_NAME//-/_}"
-        exit $?
-    fi
-
-    pids="$(pidof ${PROG})"
-    if [ -z "${pids}" ]; then
-        echo "${PROG} not running!"
-        exit 1
-    fi
-
-    ps -ef -q ${pids}
-    ;;
-*)
-    exit 1
-    ;;
-esac
-'''
-9、/etc/profile添加如下操作(不然oam_core和oam_core_adapter起不来)
+9、/etc/profile添加如下操作(不然systemctl restart oam_core和oam_core_adapter起不来)
 '''
 # inter variable
 LD_LIBRARY_PATH="/lib:/lib64"
@@ -313,7 +420,6 @@ export CURL_CA_BUNDLE="/etc/curlssl/cacert.pem"
 export PROMPT_COMMAND='history -a'
 
 if [ `who am i| awk '{print $NF}'|awk -F'(' '{print NF}'` -eq 2 ]; then
-
     unset HISTTIMEFORMAT
     export HISTTIMEFORMAT="[%F %T]-[`whoami`]- at [`who am i| awk '{print $NF}'`] "
 else
@@ -322,4 +428,292 @@ else
 fi
 '''
 
-systemctl restart pr_dpdk.service
+10、mkdir -p /etc/net_mgmt
+	touch /etc/net_mgmt/net_mgmt_mac_index.xml
+	vi /etc/net_mgmt/net_mgmt_mac_index.xml
+	chmod 755 /etc/net_mgmt/net_mgmt_mac_index.xml
+'''
+<?xml version="1.0"?>
+<MacAddressIndex>
+    <interface>
+        <name>ETH</name>
+        <type>public</type>
+        <index>0</index>
+    </interface>
+    <interface>
+        <name>NG</name>
+        <type>public</type>
+        <index>1</index>
+    </interface>
+    <interface>
+        <name>SFP+</name>
+        <type>public</type>
+        <index>2</index>
+    </interface>
+    <interface>
+        <name>br-f1</name>
+        <type>private</type>
+        <index>0</index>
+    </interface>
+    <interface>
+        <name>kni-enp1s0f3</name>
+        <type>private</type>
+        <index>1</index>
+    </interface>
+    <interface>
+        <name>kni-enp2s0f0</name>
+        <type>private</type>
+        <index>2</index>
+    </interface>
+    <interface>
+        <name>kni-enp2s0f1</name>
+        <type>private</type>
+        <index>3</index>
+    </interface>
+    <interface>
+        <name>kni-enp2s0f2</name>
+        <type>private</type>
+        <index>4</index>
+    </interface>
+    <interface>
+        <name>kni-enp2s0f3</name>
+        <type>private</type>
+        <index>5</index>
+    </interface>
+    <interface>
+        <name>kni-enp1s0f2</name>
+        <type>private</type>
+        <index>6</index>
+    </interface>
+</MacAddressIndex>
+
+'''
+
+	touch /etc/net_mgmt/net_mgmt_priv_config.xml
+	vi /etc/net_mgmt/net_mgmt_priv_config.xml
+	chmod 755 /etc/net_mgmt/net_mgmt_priv_config.xml
+'''
+<?xml version="1.0"?>
+<CONFIG>
+    <interface name="br-f1">
+        <name>br-f1</name>
+        <type>bridge</type>
+        <bridge>
+            <bri_mem_file>/run/.5gnr/ifcfg-prdpdk</bri_mem_file>
+        </bridge>
+        <ip_address>
+            <type>static</type>
+            <value>192.168.64.1</value>
+            <prefix_len>24</prefix_len>
+            <need_hmset>1</need_hmset>
+            <dhcp_server>1</dhcp_server>
+            <broadcast_server>1</broadcast_server>
+        </ip_address>
+        <ipv6_address>
+            <type>static</type>
+            <value>fc00::1</value>
+            <prefix_len>8</prefix_len>
+        </ipv6_address>
+        <unique_desc>midhaul_5g</unique_desc>
+    </interface>
+    <interface>
+        <name>tunnel0</name>
+        <type>ipsec</type>
+    </interface>
+    <interface>
+        <name>enp5s0</name>
+        <type>ethernet</type>
+    </interface>
+</CONFIG>
+'''
+
+	/etc/pm_mr_mgmt/pm_mr_measure_cfg_cmcc.xml
+
+'''
+rjos拷贝 太长了
+'''
+
+	/etc/pm_mr_mgmt/pm_mr_measure_cfg_cucc.xml
+'''
+rjos拷贝 太长了
+'''
+
+	/etc/oam_core
+'''
+rjos拷贝 太长了
+'''	
+
+10、运行 sh ham-init
+
+10、
+mkdir -p /etc/dev_mgr
+touch /etc/dev_mgr/products.xml
+vi /etc/dev_mgr/products.xml
+'''
+<?xml version="1.0" encoding="UTF-8"?>
+<products>
+  <product name="BS5000A2N41B00电信设备进网许可证" product="BS5000A2N41B00" prodmod="5GNR-pRRU520(N41)">
+  </product>
+  <product name="BS5000B2N77B00P电信设备进网许可证" product="BS5000B2N77B00P" prodmod="5GNR-pRRU520P(N77)">
+  </product>
+  <product name="BS5000A2N41B00V2电信设备进网许可证" product="BS5000A2N41B00V2" prodmod="5GNR-pRRU520(N41) V2">
+  </product>
+  <product name="5G移动通信基站BS5000A2N41B03电信设备进网许可证" product="BS5000A2N41B03" prodmod="5GNR-pRRU620(N41)-B3">
+  </product>
+  <product name="5G移动通信基站BS5000A2N41B40电信设备进网许可证" product="BS5000A2N41B40" prodmod="5GNR-pRRU620(N41)-B40">
+  </product>
+  <product name="BS5000A2N41B03V2电信设备进网许可证" product="BS5000A2N41B03V2" prodmod="5GNR-pRRU620(N41)-B3 V2">
+  </product>
+  <product name="BS5000B2N77B03P电信设备进网许可证" product="BS5000B2N77B03P" prodmod="5GNR-pRRU620P(N77)-B3">
+  </product>
+  <product name="BS5000A4N41B00电信设备进网许可证" product="BS5000A4N41B00" prodmod="5GNR-pRRU540H(N41)">
+  </product>
+  <product name="BS5000A4N41B03电信设备进网许可证" product="BS5000A4N41B03" prodmod="5GNR-pRRU640H(N41)-B3">
+  </product>
+  <product name="BS5000A4N41B40电信设备进网许可证" product="BS5000A4N41B40" prodmod="5GNR-pRRU640H(N41)-B40">
+  </product>
+  <product name="BS5000B4N77B00电信设备进网许可证" product="BS5000B4N77B00" prodmod="5GNR-pRRU540(N77)">
+  </product>
+  <product name="BS5000B4N41N77B00W电信设备进网许可证" product="BS5000B4N41N77B00W" prodmod="5GNR-pRRU542TWM(N41)(N77)">
+  </product>
+  <product name="BS5000B4N77B00W电信设备进网许可证" product="BS5000B4N77B00W" prodmod="5GNR-pRRU540W(N77)">
+  </product>
+  <product name="BS5000B4N41B00W电信设备进网许可证" product="BS5000B4N41B00W" prodmod="5GNR-pRRU540W(N41)">
+  </product>
+  <product name="BS5000B4N77B00PW电信设备进网许可证" product="BS5000B4N77B00PW" prodmod="5GNR-pRRU520PW(N77)">
+  </product>
+</products>
+'''
+
+10、touch /etc/ham/third_part_proc (用不着,废弃)
+vi /etc/ham/third_part_proc
+'''
+/usr/sbin/rdb-server /etc/kvdb/kvdb_0.conf HAM_RESTART
+/usr/sbin/rdb-server /etc/tsdb/tsdb_0.conf HAM_SHELL_RESTART
+/usr/sbin/redis-server /tmp/redis/redis_host.conf HAM_SHELL_RESTART
+'''
+
+systemctl status rg_kvdb.service ==》/usr/sbin/rdb-server /etc/kvdb/kvdb_0.conf
+systemctl status tsdb.service ==》/usr/sbin/rdb-server /etc/tsdb/tsdb_0.conf
+
+10、ldconfig -p|grep ssh（第一步已完成，，废弃）
+cd /usr/lib64
+rm -rf /usr/lib64/libssh.so.4
+ln -sf libssh.so.4.8.6 libssh.so.4
+ldconfig
+
+10、vi /etc/passwd(rjos原版)
+'''
+root:x:0:0:root:/root:/bin/cli
+bin:x:1:1:bin:/bin:/sbin/nologin
+daemon:x:2:2:daemon:/sbin:/sbin/nologin
+adm:x:3:4:adm:/var/adm:/sbin/nologin
+lp:x:4:7:lp:/var/spool/lpd:/sbin/nologin
+sync:x:5:0:sync:/sbin:/bin/sync
+shutdown:x:6:0:shutdown:/sbin:/sbin/shutdown
+halt:x:7:0:halt:/sbin:/sbin/halt
+mail:x:8:12:mail:/var/spool/mail:/sbin/nologin
+operator:x:11:0:operator:/root:/sbin/nologin
+games:x:12:100:games:/usr/games:/sbin/nologin
+ftp:x:14:50:FTP User:/var/ftp:/sbin/nologin
+nobody:x:99:99:Nobody:/:/sbin/nologin
+systemd-network:x:192:192:systemd Network Management:/:/sbin/nologin
+dbus:x:81:81:System message bus:/:/sbin/nologin
+polkitd:x:999:998:User for polkitd:/:/sbin/nologin
+rpc:x:32:32:Rpcbind Daemon:/var/lib/rpcbind:/sbin/nologin
+tss:x:59:59:Account used by the trousers package to sandbox the tcsd daemon:/dev/null:/sbin/nologin
+geoclue:x:998:996:User for geoclue:/var/lib/geoclue:/sbin/nologin
+chrony:x:997:995::/var/lib/chrony:/sbin/nologin
+ntp:x:38:38::/etc/ntp:/sbin/nologin
+rpcuser:x:29:29:RPC Service User:/var/lib/nfs:/sbin/nologin
+sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin
+install:x:0:0:root:/root:/usr/libexec/anaconda/run-anaconda
+tcpdump:x:72:72::/:/sbin/nologin
+oran_sftp:x:898:898::/home/oran_sftp:/sbin/nologin
+oran_sftp2:x:899:899::/home/oran_sftp2:/sbin/nologin
+www-data:x:900:900:www-data:/usr/sbin/eweb/html:/usr/sbin/nologin
+sys:x:991:3::/dev:/usr/sbin/nologin
+man:x:15:15::/var/cache/man:/usr/sbin/nologin
+news:x:990:990::/var/spool/news:/usr/sbin/nologin
+uucp:x:989:989::/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13::/bin:/usr/sbin/nologin
+backup:x:34:34::/var/backups:/usr/sbin/nologin
+list:x:988:988::/var/list:/usr/sbin/nologin
+irc:x:987:987::/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41::/var/lib/gnats:/usr/sbin/nologin
+messagebus:x:986:986:System Message Bus:/:/usr/sbin/nologin
+systemd-resolve:x:985:985:systemd Resolver:/:/usr/sbin/nologin
+systemd-timesync:x:984:984:systemd Time Synchronization:/:/usr/sbin/nologin
+systemd-coredump:x:983:983:systemd Core Dumper:/:/usr/sbin/nologin
+opr:x:1000:1003::/home/opr:/bin/cli
+'''
+opr:x:1000:1003::/home/opr:/bin/cli
+www-data:x:900:900:www-data:/usr/sbin/eweb/html:/usr/sbin/nologin
+oran_sftp:x:898:898::/home/oran_sftp:/sbin/nologin
+oran_sftp2:x:899:899::/home/oran_sftp2:/sbin/nologin
+===》
+groupadd 5g-operators 
+groupadd 5g-guests 
+groupadd 5g-users 
+groupadd 5g-administrators 
+groupadd www-data 
+groupadd oran_sftp 
+groupadd oran_sftp2  
+#groupadd nobody
+useradd -m -g 5g-operators opr
+useradd -m -g www-data www-data
+useradd -m -g oran_sftp oran_sftp
+useradd -m -g oran_sftp2 oran_sftp2
+#useradd -m -g nobody nobody
+===》查看用户 id john
+===》查看用户组下用户 getent group 5g-guests
+
+10、mkdir -p /sbin/eweb/html （systemctl restart webagent）
+#[ ! -L "/sbin/eweb/html/webfile" ] && ln -s "/run_isolate/public/webfile" "/sbin/eweb/html/webfile"
+
+10、rgcli -d 1
+===》debug show oam-core cwmp-ready
+===》debug show cu-oam module-init-state
+systemctl stop gnb_guard
+systemctl disable gnb_guard
+systemctl stop ham
+systemctl disable ham
+systemctl stop alarm
+systemctl disable alarm
+systemctl stop monitor
+systemctl disable monitor
+
+systemctl stop ded_core_mon
+systemctl disable ded_core_mon
+(这玩意儿干啥的)
+
+rm -rf /etc/systemd/system/multi-user.target.wants/{monitor.service,ham.service,alarm.service,gnb_guard.service,gnb_guard.service~} 不生效的杀招
+rm -rf /etc/systemd/system/multi-user.target.wants/ded_core_mon.service
+
+
+systemctl restart oam_core
+systemctl restart oam_core_adapter(这两个运行完要等好会儿)
+
+
+-----------------------------------------------
+question===>:
+-----------------------------------------------
+Nov 26 17:17:03 30b64ca22bee bash[3085]: [dynlib loading] pr_netif_portid_get_byname fail
+cd /run/.5gnr/log/zlog/oam_core_cwmp...
+
+-----------------------------------------------
+docker run===>:
+-----------------------------------------------
+'''
+docker rm -f vcu
+./dpdk-devbind.py -b i40e 0000:0b:00.0
+./dpdk-devbind.py -b i40e 0000:0b:00.1
+docker run -itd --name=vcu -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rj7 /usr/sbin/init
+pid=$(docker inspect --format '{{.State.Pid}}' vcu)
+ip link set enp11s0f0 down
+ip link set enp11s0f1 down
+ip link set enp11s0f0 netns $pid
+ip link set enp11s0f1 netns $pid
+docker exec -it vcu bash
+'''
+#docker run -itd --name=vcu  --privileged=true -v /sys/bus/pci/drivers:/sys/bus/pci/drivers -v /sys/kernel/mm/hugepages:/sys/kernel/mm/hugepages -v /sys/devices/system/node:/sys/devices/system/node -v /dev:/dev openeuler-22.03-lts:rj4 /usr/sbin/init
