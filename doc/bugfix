@@ -38,6 +38,7 @@ journalctl -f
     yum install binutils(nm命令) vim
 	yum install findutils（find） ###iputils（ping）
 	yum install ethtool
+	yum install strace
 
 gdb:
 dnf debuginfo-install glibc-2.34-70.oe2203.aarch64
@@ -419,6 +420,8 @@ export CURL_CA_BUNDLE="/etc/curlssl/cacert.pem"
 
 export PROMPT_COMMAND='history -a'
 
+#export TMPDIR="/run/.5gnr/app_data/"
+
 if [ `who am i| awk '{print $NF}'|awk -F'(' '{print NF}'` -eq 2 ]; then
     unset HISTTIMEFORMAT
     export HISTTIMEFORMAT="[%F %T]-[`whoami`]- at [`who am i| awk '{print $NF}'`] "
@@ -426,6 +429,32 @@ else
     unset HISTTIMEFORMAT
     export HISTTIMEFORMAT="[%F %T]-[`whoami`]- at [`hostname`] "
 fi
+'''
+
+vi /etc/environment(推荐，ipsec_mgmt不识别/etc/profile)(废弃)
+'''
+LD_LIBRARY_PATH="/lib:/lib64"
+TMPDIR="/run/.5gnr/app_data/"
+LIBYANG_EXTENSIONS_PLUGINS_DIR="/lib64/libyang/extensions/"
+LIBYANG_USER_TYPES_PLUGINS_DIR="/lib64/libyang/user_types/"
+DATA_RGOS_DIR="/data/.5gnr/app_data/"
+RGOS_DIR="/.5gnr/app_data/"
+LOG_FLASH_DIR_UPDATE="/data/.5gnr/log/"
+LOG_FLASH_DIR="/var/log/"
+LOG_ISOLATE_DIR="/run_isolate/log/"
+LOG_TEMP_DIR="/run/.5gnr/log/"
+ZLOG_FLASH_DIR_UPDATE="/data/.5gnr/log/zlog"
+ZLOG_FLASH_DIR="/var/log/zlog"
+ZLOG_ISOLATE_DIR="/run_isolate/log/zlog"
+ZLOG_TEMP_DIR="/run/.5gnr/log/zlog"
+TERMINFO="/usr/share/terminfo"
+VALGRIND_LIB="/usr/lib64/valgrind"
+ZLOG_PROFILE_ERROR="/run/.zlog.error.log"
+ZCT_ERROR="/run/.zct.error.log"
+PARTITION_ADJ_DIR="/run_isolate"
+CURL_CA_BUNDLE="/etc/curlssl/cacert.pem"
+TZUTC=":/usr/share/zoneinfo/right/UTC"
+PROMPT_COMMAND='history -a'
 '''
 
 10、mkdir -p /etc/net_mgmt
@@ -538,7 +567,7 @@ rjos拷贝 太长了
 rjos拷贝 太长了
 '''
 
-	/etc/oam_core
+	/etc/oam_core（貌似可以不用）
 '''
 rjos拷贝 太长了
 '''	
@@ -651,6 +680,7 @@ opr:x:1000:1003::/home/opr:/bin/cli
 www-data:x:900:900:www-data:/usr/sbin/eweb/html:/usr/sbin/nologin
 oran_sftp:x:898:898::/home/oran_sftp:/sbin/nologin
 oran_sftp2:x:899:899::/home/oran_sftp2:/sbin/nologin
+nobody:x:99:99:Nobody:/:/sbin/nologin（一定屏蔽，不然跑飞了）
 ===》
 groupadd 5g-operators 
 groupadd 5g-guests 
@@ -659,17 +689,79 @@ groupadd 5g-administrators
 groupadd www-data 
 groupadd oran_sftp 
 groupadd oran_sftp2  
-#groupadd nobody
+groupadd Nobody
 useradd -m -g 5g-operators opr
 useradd -m -g www-data www-data
 useradd -m -g oran_sftp oran_sftp
 useradd -m -g oran_sftp2 oran_sftp2
-#useradd -m -g nobody nobody
+#useradd -m -g Nobody nobody
 ===》查看用户 id john
 ===》查看用户组下用户 getent group 5g-guests
 
-10、mkdir -p /sbin/eweb/html （systemctl restart webagent）
+10、
+mkdir -p /sbin/eweb/html （systemctl restart webagent）
+mkdir -p /sbin/eweb/menu_xml
+touch /sbin/eweb/menu_xml/5GNR-EWEB-MENU.xml
+vi /sbin/eweb/menu_xml/5GNR-EWEB-MENU.xml
+'''
+<?xml version="1.0" encoding="UTF-8"?>
+<DataFile>
+  <fileHeader fileVersion="V1.0.0" createTime="2019-10-28 11:30:30" />
+  <menu id="004001" name="业务管理-核心网连接配置" defaultAdmin="true" defaultUser="false">
+    <uriList>
+      <uri>eweb/cuStack/getNGconfig</uri>
+      <uri>eweb/cuStack/setNGconfig</uri>
+    </uriList>
+  </menu>
+  <menu id="004002" name="业务管理-小区管理" defaultAdmin="true" defaultUser="false">
+    <uriList>
+      <uri>eweb/oam/rrm/cellmng</uri>
+      <uri>eweb/duStack/SetCellConfig</uri>
+          <uri>eweb/duStack/SetCellConfig</uri>
+          <uri>eweb/duStack/GetCellConfig</uri>
+          <uri>eweb/cuStack/setCellconfig</uri>
+          <uri>eweb/cuStack/getCellconfig</uri>
+    </uriList>
+  </menu>
+  <menu id="004003" name="业务管理-DU设备参数" defaultAdmin="true" defaultUser="false">
+    <uriList>
+      <uri>eweb/duStack/setDuProDataMod</uri>
+      <uri>eweb/duStack/getDuProDataMod</uri>
+    </uriList>
+  </menu>
+  <menu id="004004" name="业务管理-UE管理" defaultAdmin="true" defaultUser="false">
+    <uriList>
+      <uri>eweb/oam/rrm/uellmng</uri>
+    </uriList>
+  </menu>
+  <menu id="003001" name="WAN口参数" defaultAdmin="true" defaultUser="false">
+    <uriList>
+      <uri>eweb/debug/shell</uri>
+    </uriList>
+  </menu>
+  <menu id="009001" name="系统权限-用户管理" defaultAdmin="true" defaultUser="false">
+    <uriList>
+      <uri>/eweb/webAgent/setMenu</uri>
+          <uri>/eweb/webAgent/getMenu</uri>
+    </uriList>
+  </menu>
+  <menu id="009001" name="OTHER" defaultAdmin="true" defaultUser="true">
+    <uriList>
+      <uri>/eweb/cuStack/restart</uri>
+          <uri>/eweb/webAgent/setLocktime</uri>
+          <uri>/eweb/webAgent/getLocktime</uri>
+        </uriList>
+  </menu>
+</DataFile>
+'''
 #[ ! -L "/sbin/eweb/html/webfile" ] && ln -s "/run_isolate/public/webfile" "/sbin/eweb/html/webfile"
+
+10、mkdir -p  /run/.5gnr/log/zlog/ipsec_mgmt （奇怪为啥没创建）
+vi /usr/lib/systemd/system/ipsec_mgmt.service
+'''
+ExecStart=/bin/bash -l -c '/sbin/ipsec_mgmt.elf'
+'''
+
 
 10、rgcli -d 1
 ===》debug show oam-core cwmp-ready
@@ -694,21 +786,15 @@ rm -rf /etc/systemd/system/multi-user.target.wants/ded_core_mon.service
 systemctl restart oam_core
 systemctl restart oam_core_adapter(这两个运行完要等好会儿)
 
-
------------------------------------------------
-question===>:
------------------------------------------------
-Nov 26 17:17:03 30b64ca22bee bash[3085]: [dynlib loading] pr_netif_portid_get_byname fail
-cd /run/.5gnr/log/zlog/oam_core_cwmp...
-
 -----------------------------------------------
 docker run===>:
 -----------------------------------------------
+--env-file=env-rj
 '''
 docker rm -f vcu
 ./dpdk-devbind.py -b i40e 0000:0b:00.0
 ./dpdk-devbind.py -b i40e 0000:0b:00.1
-docker run -itd --name=vcu -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rj7 /usr/sbin/init
+docker run -itd --name=vcu -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rj6 /usr/sbin/init
 pid=$(docker inspect --format '{{.State.Pid}}' vcu)
 ip link set enp11s0f0 down
 ip link set enp11s0f1 down
@@ -717,3 +803,14 @@ ip link set enp11s0f1 netns $pid
 docker exec -it vcu bash
 '''
 #docker run -itd --name=vcu  --privileged=true -v /sys/bus/pci/drivers:/sys/bus/pci/drivers -v /sys/kernel/mm/hugepages:/sys/kernel/mm/hugepages -v /sys/devices/system/node:/sys/devices/system/node -v /dev:/dev openeuler-22.03-lts:rj4 /usr/sbin/init
+
+strace -f -o /tmp/strace.log /sbin/webagent.elf
+
+-----------------------------------------------
+question===>:
+-----------------------------------------------
+Nov 26 17:17:03 30b64ca22bee bash[3085]: [dynlib loading] pr_netif_portid_get_byname fail
+cd /run/.5gnr/log/zlog/oam_core_cwmp...
+
+root         513       1  0 20:11 ?        00:00:00 /sbin/ptp_mgmt
+root         518       1  0 20:11 ?        00:00:00 /sbin/ptp4l
