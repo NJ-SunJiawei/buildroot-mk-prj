@@ -8,15 +8,17 @@
 
 二进制成功移植openEuler运行记录
 
-<img width="419" alt="1730969546607" src="https://github.com/user-attachments/assets/8b0e7794-b95a-4bcb-8f3d-7f54296672f4">
-
 <img width="519" alt="1730969634874" src="https://github.com/user-attachments/assets/5c454df7-7acd-4e65-bf18-e8416c73f0ac">
 
 基站业务运行正常记录
 
-![image](https://github.com/user-attachments/assets/af5de68c-a8c2-4787-a7ca-8e64d6775c76)
+![image](https://github.com/user-attachments/assets/26e1129b-2a0e-4845-96e5-d085f37f5cfd)
 
-![image](https://github.com/user-attachments/assets/d0eb5ba7-25ae-4822-9d2b-a42426bdb9a9)
+![img_v3_02h2_13475cfd-2a58-4b8d-a72c-2a839eda1d2g](https://github.com/user-attachments/assets/441e3015-f0e2-43da-a188-251b9e6be64c)
+
+
+
+
 
 
 
