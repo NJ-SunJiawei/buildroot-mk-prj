@@ -33,12 +33,12 @@ journalctl -f
 	必须先删除rm -rf /lib64/libssh* 
 	          ldconfig
 	安装yum install -y systemd net-tools util-linux pciutils iproute hostname ipmitool gdb，或者离线包安装
-       yum install libatomic （/sbin/rdb-server必备）
-	   yum install btrfs-progs ( /usr/sbin/btrfs_balance 必备)
-    yum install binutils(nm命令) vim
-	yum install findutils（find） ###iputils（ping）
-	yum install ethtool
-	yum install strace
+       yum -y install libatomic （/sbin/rdb-server必备）
+	   yum -y install btrfs-progs ( /usr/sbin/btrfs_balance 必备)
+    yum -y install binutils(nm命令) vim
+	yum -y install findutils（find） ###iputils（ping）
+	yum -y install ethtool
+	yum -y install strace
 
 gdb:
 dnf debuginfo-install glibc-2.34-70.oe2203.aarch64
@@ -354,6 +354,13 @@ if [[ -n $is_mc_s5000cm ]]; then
     cu_mh="enp11s0f1"
     cu_other="enp1s0f1"
 '''
+'''
+if [[ -n $is_mc_s5000cm ]]; then
+    cu_bh="enp4s0f0"
+    cu_mh="eno2"
+    cu_other="enp1s0f1"
+'''
+
 bh_bind.sh脚本bind_port() --bind=vfio-pci //(modprobe vfio-pci) 当开启IO虚拟化采用这个驱动
 ps：https://mails.dpdk.org/archives/users/2020-April/004806.html
 '''
@@ -368,7 +375,12 @@ INTERFACE=eno2 PCI=0000:08:00.0 TYPE=CUIF1
 '''
 
 8、
+//void *handle = dlopen("libmylibrary.so", RTLD_NOW | RTLD_GLOBAL);
+
 /sbin/gtpuPacketRelay/pr_dpdk_main.sh （修改白名单，我的版本没有）
+'''
+/bin/bash -l -c '二进制'
+'''
 /usr/sbin/cu/execute_pdcp.sh，设置qat_enable=0
 
 
@@ -431,7 +443,7 @@ else
 fi
 '''
 
-vi /etc/environment(推荐，ipsec_mgmt不识别/etc/profile)(废弃)
+vi /etc/environment(推荐，ipsec_mgmt不识别/etc/profile，此外dlopen .so无法识别env ，如libdpdk_plugin_ptp.so)
 '''
 LD_LIBRARY_PATH="/lib:/lib64"
 TMPDIR="/run/.5gnr/app_data/"
@@ -459,8 +471,8 @@ PROMPT_COMMAND='history -a'
 
 10、mkdir -p /etc/net_mgmt
 	touch /etc/net_mgmt/net_mgmt_mac_index.xml
-	vi /etc/net_mgmt/net_mgmt_mac_index.xml
 	chmod 755 /etc/net_mgmt/net_mgmt_mac_index.xml
+	vi /etc/net_mgmt/net_mgmt_mac_index.xml
 '''
 <?xml version="1.0"?>
 <MacAddressIndex>
@@ -519,8 +531,8 @@ PROMPT_COMMAND='history -a'
 '''
 
 	touch /etc/net_mgmt/net_mgmt_priv_config.xml
-	vi /etc/net_mgmt/net_mgmt_priv_config.xml
 	chmod 755 /etc/net_mgmt/net_mgmt_priv_config.xml
+	vi /etc/net_mgmt/net_mgmt_priv_config.xml
 '''
 <?xml version="1.0"?>
 <CONFIG>
@@ -572,7 +584,7 @@ rjos拷贝 太长了
 rjos拷贝 太长了
 '''	
 
-10、运行 sh ham-init
+10、运行（sbin） sh ham-init
 
 10、
 mkdir -p /etc/dev_mgr
@@ -680,7 +692,8 @@ opr:x:1000:1003::/home/opr:/bin/cli
 www-data:x:900:900:www-data:/usr/sbin/eweb/html:/usr/sbin/nologin
 oran_sftp:x:898:898::/home/oran_sftp:/sbin/nologin
 oran_sftp2:x:899:899::/home/oran_sftp2:/sbin/nologin
-nobody:x:99:99:Nobody:/:/sbin/nologin（一定屏蔽，不然跑飞了）
+
+nobody:x:99:99:Nobody:/:/sbin/nologin（一定屏蔽，不然跑飞了,只做这步）
 ===》
 groupadd 5g-operators 
 groupadd 5g-guests 
@@ -698,8 +711,8 @@ useradd -m -g oran_sftp2 oran_sftp2
 ===》查看用户 id john
 ===》查看用户组下用户 getent group 5g-guests
 
-10、
-mkdir -p /sbin/eweb/html （systemctl restart webagent）
+10、（systemctl restart webagent）
+mkdir -p /sbin/eweb/html 
 mkdir -p /sbin/eweb/menu_xml
 touch /sbin/eweb/menu_xml/5GNR-EWEB-MENU.xml
 vi /sbin/eweb/menu_xml/5GNR-EWEB-MENU.xml
@@ -794,7 +807,7 @@ docker run===>:
 docker rm -f vcu
 ./dpdk-devbind.py -b i40e 0000:0b:00.0
 ./dpdk-devbind.py -b i40e 0000:0b:00.1
-docker run -itd --name=vcu -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rj6 /usr/sbin/init
+docker run -itd --name=vcu -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rj2 /usr/sbin/init
 pid=$(docker inspect --format '{{.State.Pid}}' vcu)
 ip link set enp11s0f0 down
 ip link set enp11s0f1 down
@@ -812,5 +825,38 @@ question===>:
 Nov 26 17:17:03 30b64ca22bee bash[3085]: [dynlib loading] pr_netif_portid_get_byname fail
 cd /run/.5gnr/log/zlog/oam_core_cwmp...
 
-root         513       1  0 20:11 ?        00:00:00 /sbin/ptp_mgmt
-root         518       1  0 20:11 ?        00:00:00 /sbin/ptp4l
+timed out waiting for input: auto-logout
+
+##############################################################################################
+./bindF1NG_2.sh vcu_10
+docker run -itd --name=vcu_10 -v /dev:/dev:rw --privileged=true vcu-10 /usr/sbin/init
+
+1、vi /etc/gtpuPacketRelay/bh_bind.sh 修改
+'''
+if [[ -n $is_mc_s5000cm ]]; then
+    cu_bh="enp12s0f0"
+    cu_mh="enp1s0f0 enp1s0f1 enp1s0f2 enp1s0f3"
+    cu_other="enp12s0f1"
+'''
+bind_port=igb_uio
+'''
+
+docker rm -f vcu
+/home/vcu/dpdk-devbind.py -b i40e 0000:01:00.0
+/home/vcu/dpdk-devbind.py -b i40e 0000:01:00.1
+/home/vcu/dpdk-devbind.py -b i40e 0000:01:00.2
+/home/vcu/dpdk-devbind.py -b i40e 0000:01:00.3
+
+/home/vcu/dpdk-devbind.py -b i40e 0000:0d:00.0
+/home/vcu/dpdk-devbind.py -b i40e 0000:0d:00.1
+/home/vcu/dpdk-devbind.py -b i40e 0000:0d:00.2
+/home/vcu/dpdk-devbind.py -b i40e 0000:0d:00.3
+
+docker run -itd --name=vcu -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rj2 /usr/sbin/init
+pid=$(docker inspect --format '{{.State.Pid}}' vcu)
+ip link set enp11s0f0 down
+ip link set enp11s0f1 down
+ip link set enp11s0f0 netns $pid
+ip link set enp11s0f1 netns $pid
+docker exec -it vcu bash
+
