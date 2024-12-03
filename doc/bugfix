@@ -35,7 +35,7 @@ journalctl -f
 	安装yum install -y systemd net-tools util-linux pciutils iproute hostname ipmitool gdb，或者离线包安装
        yum -y install libatomic （/sbin/rdb-server必备）
 	   yum -y install btrfs-progs ( /usr/sbin/btrfs_balance 必备)
-    yum -y install binutils(nm命令) vim
+    yum -y install vim binutils(nm命令)
 	yum -y install findutils（find） ###iputils（ping）
 	yum -y install ethtool
 	yum -y install strace
@@ -233,7 +233,7 @@ case "${1}" in
 esac
 '''
 
-（这个还好，手动移植脚本，不需要二进制）
+（这个还好，手动移植脚本，不需要二进制，和编译出来有区别）
    bspinfo.service==>/lib/systemd/system/bspinfo.service
                   ==>/etc/systemd/system/multi-user.target.wants/bspinfo.service（链接）
    #ln -s /lib/systemd/system/bspinfo.service /etc/systemd/system/multi-user.target.wants/bspinfo.service
@@ -283,7 +283,7 @@ process_start_recovery()
     echo -n 1.00 > HardwareVersion  
     echo -n rgos.bin > MainFile
     echo -n 541651 > OUI
-    echo -n 51100050 > ProductID
+    echo -n 51100060 > ProductID
     echo -n MBBU-UMCCUd-02XS > ProductModel
     echo -n G1TW40P00007C > SerialNO
     echo -n ttyS0 > console
@@ -350,8 +350,8 @@ esac
 7、vi /etc/gtpuPacketRelay/bh_bind.sh 修改
 '''
 if [[ -n $is_mc_s5000cm ]]; then
-    cu_bh="enp11s0f0"
-    cu_mh="enp11s0f1"
+    cu_bh="enp13s0f0"
+    cu_mh="enp13s0f1"
     cu_other="enp1s0f1"
 '''
 '''
@@ -805,14 +805,14 @@ docker run===>:
 --env-file=env-rj
 '''
 docker rm -f vcu
-./dpdk-devbind.py -b i40e 0000:0b:00.0
-./dpdk-devbind.py -b i40e 0000:0b:00.1
-docker run -itd --name=vcu -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rj2 /usr/sbin/init
+./dpdk-devbind.py -b i40e 0000:0d:00.0
+./dpdk-devbind.py -b i40e 0000:0d:00.1
+docker run -itd --name=vcu -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rj3 /usr/sbin/init
 pid=$(docker inspect --format '{{.State.Pid}}' vcu)
-ip link set enp11s0f0 down
-ip link set enp11s0f1 down
-ip link set enp11s0f0 netns $pid
-ip link set enp11s0f1 netns $pid
+ip link set enp13s0f0 down
+ip link set enp13s0f1 down
+ip link set enp13s0f0 netns $pid
+ip link set enp13s0f1 netns $pid
 docker exec -it vcu bash
 '''
 #docker run -itd --name=vcu  --privileged=true -v /sys/bus/pci/drivers:/sys/bus/pci/drivers -v /sys/kernel/mm/hugepages:/sys/kernel/mm/hugepages -v /sys/devices/system/node:/sys/devices/system/node -v /dev:/dev openeuler-22.03-lts:rj4 /usr/sbin/init
@@ -841,22 +841,103 @@ if [[ -n $is_mc_s5000cm ]]; then
 bind_port=igb_uio
 '''
 
-docker rm -f vcu
+2、/sbin/gtpuPacketRelay/pr_dpdk_main.sh 
+'''
+-w 0000:01:00.0 -w 0000:01:00.1 -w 0000:01:00.2 -w 0000:01:00.3 -w 0000:0d:00.0 -w 0000:0d:00.1
+'''
+ip link set enp13s0f0 down
+ip link set enp13s0f1 down
+ip link set enp13s0f0 name enp12s0f0
+ip link set enp13s0f1 name enp12s0f1
+ip link show
+ip link set enp12s0f0 up
+ip link set enp12s0f1 up
+
+---
+docker rm -f ol
 /home/vcu/dpdk-devbind.py -b i40e 0000:01:00.0
 /home/vcu/dpdk-devbind.py -b i40e 0000:01:00.1
 /home/vcu/dpdk-devbind.py -b i40e 0000:01:00.2
 /home/vcu/dpdk-devbind.py -b i40e 0000:01:00.3
-
 /home/vcu/dpdk-devbind.py -b i40e 0000:0d:00.0
 /home/vcu/dpdk-devbind.py -b i40e 0000:0d:00.1
-/home/vcu/dpdk-devbind.py -b i40e 0000:0d:00.2
-/home/vcu/dpdk-devbind.py -b i40e 0000:0d:00.3
+docker run -itd --name=ol -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rjok /usr/sbin/init
+pid=$(docker inspect --format '{{.State.Pid}}' ol)
+ip link set enp1s0f0 down
+ip link set enp1s0f1 down
+ip link set enp1s0f2 down
+ip link set enp1s0f3 down
+ip link set enp13s0f0 down
+ip link set enp13s0f1 down
+ip link set enp13s0f0 name enp12s0f0
+ip link set enp13s0f1 name enp12s0f1
+ip link set enp1s0f0 netns $pid
+ip link set enp1s0f1 netns $pid
+ip link set enp1s0f2 netns $pid
+ip link set enp1s0f3 netns $pid
+ip link set enp12s0f0 netns $pid
+ip link set enp12s0f1 netns $pid
+docker exec -it ol bash
 
-docker run -itd --name=vcu -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rj2 /usr/sbin/init
-pid=$(docker inspect --format '{{.State.Pid}}' vcu)
-ip link set enp11s0f0 down
-ip link set enp11s0f1 down
-ip link set enp11s0f0 netns $pid
-ip link set enp11s0f1 netns $pid
-docker exec -it vcu bash
 
+ping 192.168.64.2(ping du)
+
+rgcli -d 1
+===》debug show oam-core cwmp-ready
+===》debug show cu-oam module-init-state
+===》set user-password :name=opr(设置opr初始密码，不然登陆不上Du)
+===》set user-password :name=root(设置root初始密码）
+
+CU时钟不正常
+#（cp /var/.5gnr/app_data/bsp_pd/51100060/bsp_cfg.ini /var/.5gnr/app_data/bsp_pd/51100050/ 要和ProductID rg_bspinfo一致）废弃，已在/etc/rc.d/init.d/rg-bspinfo中修改
+===》show si5383-status
+===》show sync-clock
+
+===》show version
+===》show device
+
+ssh opr@192.168.64.2
+sw su
+
+
+开站命令
+运营商和核心网配置
+add gnbcu-operator :operator-id=0 operator-name="CMCC" operator-type=primary-operator gnbid=78 gnbid-len=24 plmnid="46007"
+add amfpool :amfid=0 operator-id=0 amfip1="192.168.112.223"
+add gnbdu-operator : operator-id=0 gnbid=78 gnbid-len=24 operator-name="CMCC" operator-type=PRIMARY_OPERATOR plmnlist="46007" gnbname="cell" slot=1
+
+CU/DU小区配置
+add nrcell :nrcellid=0 cellid=0 duplexsete=cell-tdd frequencyband=n41 cellname="cell1"
+add nrducell : nrducell-id=0 cellid=0 cyclic-prefix-length=NCP dl-bandwidth=CELL_BW_100M ul-bandwidth=CELL_BW_100M dl-narfcn=519138 ul-narfcn=519138 freq-band=N41 logical-rootseqindex=137 operator-id=0 pci=11 ranac=0 tac=81 ssb-descmethod=SSB_DESC_TYPE_NARFCN slot-assignment=8_2_DDDDDDDSUU slot-structure=SS2 ssb-period=MS20 txrx-mode=2T2R duplex-mode=CELL_TDD nrducell-name="cell1" ssb-freq-pos=510030 slot=1
+show nrducell :slot=1
+
+RRU覆盖区配置
+list rru:slot=1
+add rru-group : group-id=0 slot=1
+add rru-groupeqm : group-id=0 rcn=0 slot=1
+add nrducell-coverage : max-transmit-power=24 group-id=0 nrducell-coverage-id=0 nrducell-id=0 slot=1
+set rru:rcn=0 ant-mode=0x0303 slot=1
+
+CU上NG的IP地址待配置(vcu-8上未配，将连不通核心网)
+add ipv4-address :interface=NG ipv4=192.168.112.78 mask=255.255.255.0 nr-port-type=Ng
+add ipv4-route :interface=NG dst-ipv4=0.0.0.0 mask=0 next-hop=192.168.112.1
+show amfpool
+
+激活小区
+#set nrcell-inactivetimer :nrcellid=0 timervalue=0
+set nrcellactive:nrcellid=0 cellstatus=enable
+show amfpool
+
+
+debug show du-mac summary
+
+
+APN cmnet7
+iperf -s -i 1 -u
+
+#上下行打流测试方法
+#用手机上行打流(手机安装Cellular-Z和Magic iPerf软件)
+-c 192.168.113.100 -t 9999 -i 1 -u -b 250m       
+#从FTP业务服务器下行打流
+#登陆FTP业务服务器：192.168.114.100 root/cmcczjyjy
+iperf -c 20.0.2.5 -t 99999 -i 1 -u -b 800m     //手机查看IP：20.0.2.6（两个IP，用数据业务5QI=9的IP，不要用IMS 5QI=5的IP）
