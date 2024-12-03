@@ -16,6 +16,13 @@
 
 ![img_v3_02h2_13475cfd-2a58-4b8d-a72c-2a839eda1d2g](https://github.com/user-attachments/assets/441e3015-f0e2-43da-a188-251b9e6be64c)
 
+终端接入测试
+
+![终端接入图](https://github.com/user-attachments/assets/e1bc273f-92ba-480b-9147-7148a1b91391)
+
+
+
+
 
 
 
