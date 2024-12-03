@@ -13,6 +13,31 @@ qemu-system-aarch64.exe -m 2048 -cpu cortex-a72 -smp 8,sockets=4,cores=2 -M virt
 ifconfig eth0 192.168.1.92/24
 
 rpm -ivh --replacepkgs --force --nodeps *.rpm
+
+rpm -ivh --replacepkgs --force --nodeps kernel.rpm
+depmod 5.10.1(更新内核驱动依赖)
+
+sudo yum install -y dracut(制作initrd.img)
+dracut -f -v /boot/initramfs-5.10.1.img 5.10.1
+
+grub2-mkconfig -o /boot/efi/EFI/openEuler/grub.cfg(33服务器用这个)
+grub2-mkconfig -o /boot/grub2/grub.cfg
+
+=====dpdk配置
+cp *.ko /lib/modules/$(uname -r)/kernel/drivers/net
+depmod -a
+modprobe rte_kni
+modprobe igb_uio
+
+/etc/modules-load.d/dpdk.conf文件(名字随意,开机启动设置)
+'''
+rte_kni
+igb_uio
+'''
+
+配置大页内存
+
+docker container prune
 -----------------------------------------------------
 -----------------------------------------------------
 
