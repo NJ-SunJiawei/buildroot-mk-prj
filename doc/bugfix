@@ -36,6 +36,14 @@ igb_uio
 '''
 
 配置大页内存
+修改/etc/default/grub文件
+在GRUB_CMDLINE_LINUX中加入如下配置: 
+'''
+default_hugepagesz=1G hugepagesz=1G hugepages=8
+'''
+mkdir /mnt/huge_1GB
+echo 'nodev /mnt/huge_1GB hugetlbfs pagesize=1GB 0 0' >> /etc/fstab
+===
 
 docker container prune
 -----------------------------------------------------
@@ -82,6 +90,8 @@ ln -s /usr/bin/ping.elf /usr/bin/ping6
 net.ipv6.conf.all.disable_ipv6 = 0
 net.ipv6.conf.default.disable_ipv6 = 0
 ''' 
+echo -e "net.ipv6.conf.all.disable_ipv6 = 0\nnet.ipv6.conf.default.disable_ipv6 = 0" | tee -a /etc/sysctl.conf
+
 执行sysctl -p
 
 2、创建touch /etc/version（/etc/gtpuPacketRelay/bh_bind.sh为了判定为bbu_mc_s5000cm）
@@ -832,7 +842,7 @@ docker run===>:
 docker rm -f vcu
 ./dpdk-devbind.py -b i40e 0000:0d:00.0
 ./dpdk-devbind.py -b i40e 0000:0d:00.1
-docker run -itd --name=vcu -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rj3 /usr/sbin/init
+docker run -itd -e TMOUT=0 --name=vcu -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rj3 /usr/sbin/init
 pid=$(docker inspect --format '{{.State.Pid}}' vcu)
 ip link set enp13s0f0 down
 ip link set enp13s0f1 down
@@ -886,7 +896,7 @@ docker rm -f ol
 /home/vcu/dpdk-devbind.py -b i40e 0000:01:00.3
 /home/vcu/dpdk-devbind.py -b i40e 0000:0d:00.0
 /home/vcu/dpdk-devbind.py -b i40e 0000:0d:00.1
-docker run -itd --name=ol -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rjok /usr/sbin/init
+docker run -itd --name=ol -e TMOUT=0 -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rjok /usr/sbin/init
 pid=$(docker inspect --format '{{.State.Pid}}' ol)
 ip link set enp1s0f0 down
 ip link set enp1s0f1 down
@@ -922,7 +932,7 @@ CU时钟不正常
 ===》show device
 
 ssh opr@192.168.64.2
-sw su
+sw u
 
 
 开站命令
