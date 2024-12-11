@@ -896,7 +896,7 @@ docker rm -f ol
 /home/vcu/dpdk-devbind.py -b i40e 0000:01:00.3
 /home/vcu/dpdk-devbind.py -b i40e 0000:0d:00.0
 /home/vcu/dpdk-devbind.py -b i40e 0000:0d:00.1
-docker run -itd --name=ol -e TMOUT=0 -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rjok /usr/sbin/init
+docker run --network host -itd --name=ol -e TMOUT=0 -v /dev:/dev:rw --privileged=true openeuler-22.03-lts:rjok /usr/sbin/init
 pid=$(docker inspect --format '{{.State.Pid}}' ol)
 ip link set enp1s0f0 down
 ip link set enp1s0f1 down
@@ -945,9 +945,11 @@ CU/DU小区配置
 add nrcell :nrcellid=0 cellid=0 duplexsete=cell-tdd frequencyband=n41 cellname="cell1"
 add nrducell : nrducell-id=0 cellid=0 cyclic-prefix-length=NCP dl-bandwidth=CELL_BW_100M ul-bandwidth=CELL_BW_100M dl-narfcn=519138 ul-narfcn=519138 freq-band=N41 logical-rootseqindex=137 operator-id=0 pci=11 ranac=0 tac=81 ssb-descmethod=SSB_DESC_TYPE_NARFCN slot-assignment=8_2_DDDDDDDSUU slot-structure=SS2 ssb-period=MS20 txrx-mode=2T2R duplex-mode=CELL_TDD nrducell-name="cell1" ssb-freq-pos=510030 slot=1
 show nrducell :slot=1
+list nrducell :slot=1
 
 RRU覆盖区配置
-list rru:slot=1
+list rru :slot=1
+show rru :slot=1
 add rru-group : group-id=0 slot=1
 add rru-groupeqm : group-id=0 rcn=0 slot=1
 add nrducell-coverage : max-transmit-power=24 group-id=0 nrducell-coverage-id=0 nrducell-id=0 slot=1
@@ -963,9 +965,27 @@ show amfpool
 set nrcellactive:nrcellid=0 cellstatus=enable
 show amfpool
 
+#删除小区
+del ?
+del nrducell :nrducell-id=0
 
+admin-run-background
+
+
+bug问题：du命令行的问题（%Configure问题） debug du-oam active-proxy-dsm
+bug问题：天线无法识别接5db衰减器（set rru:rcn=0 ant-mode=0x0303）
 debug show du-mac summary
 
+商用版本优化配置
+开启上行比拼
+debug limit-mode : du-cell-index=0 cu-local-cell-id=0  mode=PEAK_THROUGHPUT_UL_14_SYM slot=1
+set nrducell:nrducell-id=0 ssb-period=ms20 slot=1
+set nrducell-csirs :nrducell-id=0 trs-period=SLOT40 csirs-period=SLOT160 slot=1
+debug du-mac pc pusch : cell=0 pusch-rsrp-threshold=-75
+
+关闭上行比拼
+debug limit-mode : du-cell-index=0 cu-local-cell-id=0 mode=NORMAL slot=1
+set nrducell-csirs :nrducell-id=0 trs-period=SLOT40 slot=1
 
 APN cmnet7
 iperf -s -i 1 -u
